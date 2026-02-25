@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { useCallback, memo, useMemo, useState } from 'react';
@@ -32,7 +32,7 @@ const MemoizedLinkItem = memo(
 		const { currentPageIndex } = useBackground();
 		const isCurrent = useMemo(
 			() => index === currentPageIndex,
-			[index, currentPageIndex]
+			[index, currentPageIndex],
 		);
 		return (
 			<motion.div
@@ -48,34 +48,32 @@ const MemoizedLinkItem = memo(
 					delay: delay,
 				}}
 				key={keyString}
-				className="flex items-center justify-center grow relative"
+				className='flex items-center justify-center grow relative'
 				onAnimationComplete={() => {
 					setDelay(0);
 				}}
 			>
 				<Link
 					href={to}
-					className="text-2xl font-bold w-full menu-btn z-5"
+					className='text-2xl font-bold w-full menu-btn z-5'
 					key={keyString}
 					onMouseEnter={
-						onMouseEnter
-							? (e) => {
-									onMouseEnter(index ?? 0);
-									setIsHovered(true);
-									e.currentTarget.classList.add('selected');
-								}
-							: undefined
+						onMouseEnter ?
+							(e) => {
+								onMouseEnter(index ?? 0);
+								setIsHovered(true);
+								e.currentTarget.classList.add('selected');
+							}
+						:	undefined
 					}
 					onMouseLeave={
-						onMouseLeave
-							? (e) => {
-									onMouseLeave();
-									e.currentTarget.classList.remove(
-										'selected'
-									);
-									setIsHovered(false);
-								}
-							: undefined
+						onMouseLeave ?
+							(e) => {
+								onMouseLeave();
+								e.currentTarget.classList.remove('selected');
+								setIsHovered(false);
+							}
+						:	undefined
 					}
 					onClick={onClick}
 					draggable={false}
@@ -85,13 +83,13 @@ const MemoizedLinkItem = memo(
 						step={10}
 						scramble={5 + (index ?? 0) * 2}
 						preventLayoutShift
-						className="leading-[1em]"
+						className='leading-[1em]'
 					>
 						{title}
 					</ScrambleText>
 				</Link>
 				<motion.div
-					className="absolute inset-[1px] bg-brown z-2 skew-x-[-15deg] translate-x-[-10px]"
+					className='absolute inset-[1px] bg-brown z-2 skew-x-[-15deg] translate-x-[-10px]'
 					initial={{ width: 0 }}
 					animate={{ width: isHovered || isCurrent ? '100%' : 0 }}
 					exit={{ width: 0 }}
@@ -102,7 +100,7 @@ const MemoizedLinkItem = memo(
 				/>
 			</motion.div>
 		);
-	}
+	},
 );
 
 MemoizedLinkItem.displayName = 'MemoizedLinkItem'; // this is for React DevTools so it's identifiable
@@ -118,7 +116,7 @@ function DesktopNavUI() {
 				setContentHidden(true);
 			}
 		},
-		[setCameraPosition, setContentHidden, currentPageIndex]
+		[setCameraPosition, setContentHidden, currentPageIndex],
 	);
 
 	const handleMouseLeave = useCallback(() => {
@@ -146,12 +144,12 @@ function DesktopNavUI() {
 					onClick={handleClick}
 				/>
 			)),
-		[handleMouseEnter, handleMouseLeave, strings.ui.nav]
+		[handleMouseEnter, handleMouseLeave, strings.ui.nav],
 	);
 
 	return (
 		<div
-			className="hidden md:flex flex-col absolute z-999 left-0 top-1/3 -translate-y-1/2 pointer-events-auto"
+			className='hidden md:flex flex-col absolute z-999 left-0 top-1/3 -translate-y-1/2 pointer-events-auto'
 			style={{
 				height: navItems.length * 56 + 'px',
 			}}
@@ -180,25 +178,25 @@ function MobileNavUI() {
 					key={`nav-${index}-${item.to}-mobile`}
 					href={item.to}
 					onClick={handleClick}
-					className="py-[12px] [&:not(:last-child)]:border-b-2 border-yorha-dark"
+					className='py-[12px] [&:not(:last-child)]:border-b-2 border-yorha-dark'
 				>
 					<ScrambleText>{item.text}</ScrambleText>
 				</Link>
 			)),
-		[strings.ui.nav, handleClick]
+		[strings.ui.nav, handleClick],
 	);
 
 	return (
 		<>
 			<button
-				className="w-[20px] h-[20px] absolute z-1000 bg-yorha top-[16px] right-[16px] pointer-events-auto md:hidden flex flex-col justify-center items-center"
+				className='w-[20px] h-[20px] absolute z-1000 bg-yorha top-[16px] right-[16px] pointer-events-auto md:hidden flex flex-col justify-center items-center'
 				onClick={() => {
 					setIsMobileNavOpen(!isMobileNavOpen);
 				}}
 			>
-				<div className="w-full h-[14px] flex flex-col justify-between items-center relative">
+				<div className='w-full h-[14px] flex flex-col justify-between items-center relative'>
 					<motion.span
-						className="w-[80%] h-[2px] bg-yorha-dark block origin-center rounded-full"
+						className='w-[80%] h-[2px] bg-yorha-dark block origin-center rounded-full'
 						animate={{
 							rotate: isMobileNavOpen ? 45 : 0,
 							y: isMobileNavOpen ? 6 : 0,
@@ -206,14 +204,14 @@ function MobileNavUI() {
 						transition={{ duration: 0.3 }}
 					/>
 					<motion.span
-						className="w-[80%] h-[2px] bg-yorha-dark block rounded-full"
+						className='w-[80%] h-[2px] bg-yorha-dark block rounded-full'
 						animate={{
 							opacity: isMobileNavOpen ? 0 : 1,
 						}}
 						transition={{ duration: 0.3 }}
 					/>
 					<motion.span
-						className="w-[80%] h-[2px] bg-yorha-dark block origin-center rounded-full"
+						className='w-[80%] h-[2px] bg-yorha-dark block origin-center rounded-full'
 						animate={{
 							rotate: isMobileNavOpen ? -45 : 0,
 							y: isMobileNavOpen ? -6 : 0,
@@ -221,13 +219,13 @@ function MobileNavUI() {
 						transition={{ duration: 0.3 }}
 					/>
 				</div>
-				<span className="sr-only">Menu</span>
+				<span className='sr-only'>Menu</span>
 			</button>
 			<motion.div
 				initial={{ left: '-100vw' }}
 				animate={{ left: isMobileNavOpen ? 0 : '-100vw' }}
 				transition={{ duration: 0.3, ease: 'easeInOut' }}
-				className="flex flex-col absolute z-1005 top-1/2 -translate-y-1/2 p-[16px] bg-yorha pointer-events-auto md:hidden border-2 border-yorha-dark border-l-0 shadow-[0_0_20px_rgba(0,0,0,0.9)]"
+				className='flex flex-col absolute z-1005 top-1/2 -translate-y-1/2 p-[16px] bg-yorha pointer-events-auto md:hidden border-2 border-yorha-dark border-l-0 shadow-[0_0_20px_rgba(0,0,0,0.9)]'
 			>
 				{navItems}
 			</motion.div>

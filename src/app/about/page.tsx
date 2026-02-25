@@ -1,5 +1,5 @@
-import About from '@pages/About';
+import About from '@views/About';
 
 export default function Page() {
-  return <About />;
+	return <About />;
 }

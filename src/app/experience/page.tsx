@@ -1,5 +1,5 @@
-import Experience from '@pages/Experience';
+import Experience from '@views/Experience';
 
 export default function Page() {
-  return <Experience />;
+	return <Experience />;
 }

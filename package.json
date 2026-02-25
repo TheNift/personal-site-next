@@ -1,43 +1,45 @@
 {
-  "name": "personal-site-next",
-  "version": "0.1.0",
-  "private": true,
-  "packageManager": "yarn@1.22.22",
-  "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "vinext start",
-    "deploy": "vinext deploy",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@emailjs/browser": "^4.4.1",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.5.0",
-    "moment": "^2.30.1",
-    "motion": "^12.34.3",
-    "next": "16.1.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "react-google-recaptcha": "^3.1.0",
-    "three": "^0.183.1",
-    "use-scramble": "^2.2.15",
-    "vinext": "^0.0.5",
-    "vite": "^7.3.1"
-  },
-  "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.25.5",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/react-google-recaptcha": "^2.1.9",
-    "@types/three": "^0.183.1",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "wrangler": "^4.68.1"
-  },
-  "type": "module"
+	"name": "personal-site-next",
+	"version": "0.1.0",
+	"private": true,
+	"packageManager": "yarn@1.22.22",
+	"scripts": {
+		"dev": "vinext dev",
+		"build": "vinext build",
+		"start": "vinext start",
+		"deploy": "vinext deploy",
+		"lint": "eslint"
+	},
+	"dependencies": {
+		"@emailjs/browser": "^4.4.1",
+		"@react-three/drei": "^10.7.7",
+		"@react-three/fiber": "^9.5.0",
+		"moment": "^2.30.1",
+		"motion": "^12.34.3",
+		"next": "16.1.6",
+		"react": "19.2.4",
+		"react-dom": "19.2.4",
+		"react-google-recaptcha": "^3.1.0",
+		"three": "^0.183.1",
+		"use-scramble": "^2.2.15",
+		"vinext": "^0.0.8"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.25.5",
+		"@tailwindcss/postcss": "^4",
+		"@types/node": "^20",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"@types/react-google-recaptcha": "^2.1.9",
+		"@types/three": "^0.183.1",
+		"@vitejs/plugin-rsc": "^0.5.20",
+		"eslint": "^9",
+		"eslint-config-next": "16.1.6",
+		"tailwindcss": "^4",
+		"typescript": "^5",
+		"vite": "^7.3.1",
+		"webpack": "^5.105.2",
+		"wrangler": "^4.68.1"
+	},
+	"type": "module"
 }

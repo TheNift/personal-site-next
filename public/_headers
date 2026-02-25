@@ -14,6 +14,9 @@
 /robots.txt
   Cache-Control: public, max-age=86400
 
+/fonts/*.ttf
+  Cache-Control: public, max-age=2592000, immutable
+
 /models/*.glb
   Cache-Control: public, max-age=2592000, immutable
   

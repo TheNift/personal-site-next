@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
@@ -14,7 +14,7 @@ interface LanguageContextType {
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
-	undefined
+	undefined,
 );
 
 const getBrowserLanguage = (): Language => {
@@ -67,17 +67,16 @@ const mergeDeep = (base: any, override: any): any => {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
-	const [language, setLanguage] = useState<Language>(() => {
-		if (typeof window !== 'undefined') {
-			const stored = localStorage.getItem(
-				'preferred-language'
-			) as Language;
-			if (stored === 'eng' || stored === 'viet') {
-				return stored;
-			}
+	const [language, setLanguage] = useState<Language>('eng');
+
+	useEffect(() => {
+		const stored = localStorage.getItem('preferred-language') as Language;
+		if (stored === 'eng' || stored === 'viet') {
+			setLanguage(stored);
+		} else {
+			setLanguage(getBrowserLanguage());
 		}
-		return getBrowserLanguage();
-	});
+	}, []);
 
 	useEffect(() => {
 		localStorage.setItem('preferred-language', language);

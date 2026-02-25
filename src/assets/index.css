@@ -36,6 +36,8 @@
 
 	--font-doto: 'Doto', sans-serif;
 	--font-jetbrains-mono: 'JetBrains Mono', monospace;
+	/* --font-doto: var(--font-doto);
+	--font-jetbrains-mono: var(--font-jetbrains-mono); */
 }
 
 @layer components {

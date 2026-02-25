@@ -1,5 +1,5 @@
-import Contact from '@pages/Contact';
+import Contact from '@views/Contact';
 
 export default function Page() {
-  return <Contact />;
+	return <Contact />;
 }
