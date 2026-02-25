@@ -1,0 +1,7 @@
+# Robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /contact
+
+Sitemap: https://jackkill.com/sitemap.xml
