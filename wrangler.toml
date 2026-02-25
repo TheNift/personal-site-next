@@ -2,6 +2,7 @@ name = "personal-site-next"
 main = "dist/server/index.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+no_bundle = true
 
 [assets]
 directory = "dist/client"
