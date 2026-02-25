@@ -6,6 +6,7 @@ import '@/assets/index.css';
 export const metadata: Metadata = {
 	title: 'My Portfolio',
 	description: 'Personal portfolio website',
+	icons: { icon: '/favicon.ico' },
 };
 
 export default function RootLayout({
