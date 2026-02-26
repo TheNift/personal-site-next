@@ -16,7 +16,7 @@ const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> 
 	{
 		pattern: "/*",
 		headers: {
-			"Cache-Control": "public, max-age=3600",
+			"Cache-Control": "public, max-age=604800",
 			"X-Frame-Options": "DENY",
 			"X-Content-Type-Options": "nosniff",
 			"Referrer-Policy": "strict-origin-when-cross-origin",
@@ -26,7 +26,7 @@ const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> 
 		pattern: "/contact",
 		headers: {
 			"X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet, noimageindex",
-			"Cache-Control": "public, max-age=3600",
+			"Cache-Control": "public, max-age=604800",
 		},
 	},
 	{
@@ -59,19 +59,19 @@ const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> 
 	},
 	{
 		pattern: "/*.png",
-		headers: { "Cache-Control": "public, max-age=86400, immutable" },
+		headers: { "Cache-Control": "public, max-age=31536000, immutable" },
 	},
 	{
 		pattern: "/*.jpg",
-		headers: { "Cache-Control": "public, max-age=86400, immutable" },
+		headers: { "Cache-Control": "public, max-age=31536000, immutable" },
 	},
 	{
 		pattern: "/*.jpeg",
-		headers: { "Cache-Control": "public, max-age=86400, immutable" },
+		headers: { "Cache-Control": "public, max-age=31536000, immutable" },
 	},
 	{
 		pattern: "/*.svg",
-		headers: { "Cache-Control": "public, max-age=86400, immutable" },
+		headers: { "Cache-Control": "public, max-age=31536000, immutable" },
 	},
 	{
 		pattern: "/assets/*.js",
