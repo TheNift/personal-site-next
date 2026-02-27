@@ -32,5 +32,15 @@ export default defineConfig(({ command }) => ({
         },
       },
     },
+    ssr: {
+      build: {
+        rollupOptions: {
+          external: (id: string) =>
+            id.includes("BackgroundScene") ||
+            id.includes("/BackgroundScene.tsx") ||
+            id.includes("\\BackgroundScene.tsx"),
+        },
+      },
+    },
   },
 }));
