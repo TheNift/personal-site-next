@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@font-face {
+/* @font-face {
 	font-family: 'Doto';
 	src: url('/fonts/Doto-Variable.ttf') format('truetype');
 	font-weight: 100 900;
@@ -14,7 +14,7 @@
 	font-weight: 100 800;
 	font-style: normal;
 	font-display: swap;
-}
+} */
 
 @theme {
 	--color-yorha: #d1cdb7;

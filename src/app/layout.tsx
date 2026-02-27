@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-// import localFont from 'next/font/local';
+import localFont from 'next/font/local';
 import { Providers } from './providers';
 import LoadingHandler from '@/components/LoadingHandler';
 import '@/assets/index.css';
@@ -27,31 +27,31 @@ export const metadata: Metadata = {
 };
 
 //  COOL IN THEORY, SLOWED DOWN LCP IN PRACTICE - re-added font-face declarations to index.css
-// const doto = localFont({
-// 	src: '/fonts/Doto-Variable.ttf',
-// 	display: 'swap',
-// 	weight: '100 900',
-// 	variable: '--font-doto',
-// 	preload: true,
-// });
+const doto = localFont({
+	src: '/fonts/Doto-Variable.ttf',
+	display: 'swap',
+	weight: '100 900',
+	variable: '--font-doto',
+	preload: true,
+});
 
-// const jetbrainsMono = localFont({
-// 	src: [
-// 		{
-// 			path: '/fonts/JetBrainsMono-Variable.ttf',
-// 			weight: '100 800',
-// 			style: 'normal',
-// 		},
-// 		{
-// 			path: '/fonts/JetBrainsMono-Italic-Variable.ttf',
-// 			weight: '100 800',
-// 			style: 'italic',
-// 		},
-// 	],
-// 	display: 'swap',
-// 	variable: '--font-jetbrains-mono',
-// 	preload: true,
-// });
+const jetbrainsMono = localFont({
+	src: [
+		{
+			path: '/fonts/JetBrainsMono-Variable.ttf',
+			weight: '100 800',
+			style: 'normal',
+		},
+		{
+			path: '/fonts/JetBrainsMono-Italic-Variable.ttf',
+			weight: '100 800',
+			style: 'italic',
+		},
+	],
+	display: 'swap',
+	variable: '--font-jetbrains-mono',
+	preload: true,
+});
 
 export default function RootLayout({
 	children,
@@ -352,6 +352,16 @@ export default function RootLayout({
 				/>
 			</head>
 			<body>
+				<span // dumb fix to console warning of Doto not being used - it does get used, just after SSR content is loaded
+					aria-hidden
+					style={{
+						position: 'absolute',
+						left: '-9999px',
+						fontFamily: "'Doto', sans-serif",
+					}}
+				>
+					{' '}
+				</span>
 				<Providers>
 					<LoadingHandler>{children}</LoadingHandler>
 				</Providers>
