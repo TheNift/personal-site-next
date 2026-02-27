@@ -16,14 +16,6 @@
 	font-display: swap;
 }
 
-@font-face {
-	font-family: 'JetBrains Mono';
-	src: url('/fonts/JetBrainsMono-Italic-Variable.ttf') format('truetype');
-	font-weight: 100 800;
-	font-style: italic;
-	font-display: swap;
-}
-
 @theme {
 	--color-yorha: #d1cdb7;
 	--color-yorha-dark: #14130d;

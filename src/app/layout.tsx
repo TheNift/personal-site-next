@@ -79,13 +79,6 @@ export default function RootLayout({
 					type='font/ttf'
 					crossOrigin='anonymous'
 				/>
-				<link
-					rel='preload'
-					href='/fonts/JetBrainsMono-Italic-Variable.ttf'
-					as='font'
-					type='font/ttf'
-					crossOrigin='anonymous'
-				/>
 				<script
 					type='application/ld+json'
 					dangerouslySetInnerHTML={{
