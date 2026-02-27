@@ -3,13 +3,17 @@
 import AnimatedOutlet from '@/components/AnimatedOutlet';
 import LanguageToggle from '@/components/LanguageToggle';
 import NavUI from '@/components/NavUI';
-import { lazy, Suspense, ReactNode, useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { ReactNode, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import LoadingScreen from './LoadingScreen';
 import { useBackground } from '@/contexts/BackgroundContext';
 
-const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
+const BackgroundScene = dynamic(() => import('@/components/BackgroundScene'), {
+	ssr: false,
+	loading: () => <div className="w-full h-full bg-inherit" />,
+});
 
 function GlobalUI({ children }: { children: ReactNode }) {
 	const pathname = usePathname() || '/';
@@ -38,11 +42,7 @@ function GlobalUI({ children }: { children: ReactNode }) {
 			</div>
 			<LoadingModal />
 			<div className="absolute inset-0 z-0 bg-site-bg">
-				<Suspense
-					fallback={<div className="w-full h-full bg-inherit" />}
-				>
-					<BackgroundScene />
-				</Suspense>
+				<BackgroundScene />
 			</div>
 		</div>
 	);
