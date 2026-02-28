@@ -36,19 +36,9 @@ const doto = localFont({
 });
 
 const jetbrainsMono = localFont({
-	src: [
-		{
-			path: '/fonts/JetBrainsMono-Variable.ttf',
-			weight: '100 800',
-			style: 'normal',
-		},
-		{
-			path: '/fonts/JetBrainsMono-Italic-Variable.ttf',
-			weight: '100 800',
-			style: 'italic',
-		},
-	],
+	src: '/fonts/JetBrainsMono-Variable.ttf',
 	display: 'swap',
+	weight: '100 900',
 	variable: '--font-jetbrains-mono',
 	preload: true,
 });
@@ -65,20 +55,6 @@ export default function RootLayout({
 		>
 			<head>
 				<meta charSet='utf-8' />
-				<link
-					rel='preload'
-					href='/fonts/Doto-Variable.ttf'
-					as='font'
-					type='font/ttf'
-					crossOrigin='anonymous'
-				/>
-				<link
-					rel='preload'
-					href='/fonts/JetBrainsMono-Variable.ttf'
-					as='font'
-					type='font/ttf'
-					crossOrigin='anonymous'
-				/>
 				<script
 					type='application/ld+json'
 					dangerouslySetInnerHTML={{
