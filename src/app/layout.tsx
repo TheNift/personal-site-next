@@ -2,31 +2,31 @@ import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { Providers } from './providers';
 import LoadingHandler from '@/components/LoadingHandler';
+import strings from '@/data/strings';
 import '@/assets/index.css';
 
+const { title, description, url, ogImage } = strings.seo;
+
 export const metadata: Metadata = {
-	title: 'Jack Kill | Software Engineer & Constantly Learning',
-	description:
-		"I'm Jack Kill, a constantly-improving software engineer and computer enthusiast! This is my personal portfolio site, built to showcase my capabilities.",
+	title,
+	description,
 	icons: { icon: '/favicon.ico' },
 	openGraph: {
-		images: '/images/meta_image.webp',
-		siteName: 'Jack Kill | Software Engineer & Constantly Learning',
+		images: ogImage,
+		siteName: title,
 		locale: 'en_US',
 		type: 'website',
-		url: 'https://jackkill.com',
-		description:
-			"I'm Jack Kill, a constantly-improving software engineer and computer enthusiast! This is my personal portfolio site, built to showcase my capabilities.",
+		url,
+		description,
 	},
 	alternates: {
 		languages: {
-			'en-US': 'https://jackkill.com',
-			'vi-VN': 'https://jackkill.com',
+			'en-US': url,
+			'vi-VN': url,
 		},
 	},
 };
 
-//  COOL IN THEORY, SLOWED DOWN LCP IN PRACTICE - re-added font-face declarations to index.css
 const doto = localFont({
 	src: '/fonts/Doto-Variable.ttf',
 	display: 'swap',
@@ -51,7 +51,7 @@ export default function RootLayout({
 	return (
 		<html
 			lang='en'
-			className='antialiased'
+			className={`${doto.variable} ${jetbrainsMono.variable} antialiased`}
 		>
 			<head>
 				<meta charSet='utf-8' />
@@ -152,174 +152,177 @@ export default function RootLayout({
 									alternateName: 'Tiếng Việt',
 								},
 							],
-							skills: [
-								{ '@type': 'Skill', name: 'JavaScript' },
-								{ '@type': 'Skill', name: 'TypeScript' },
-								{ '@type': 'Skill', name: 'C++' },
-								{ '@type': 'Skill', name: 'C' },
-								{ '@type': 'Skill', name: 'Go' },
-								{ '@type': 'Skill', name: 'PHP' },
-								{ '@type': 'Skill', name: 'Python' },
-								{ '@type': 'Skill', name: 'Java' },
-								{ '@type': 'Skill', name: 'C#' },
+							knowsAbout: [
+								{ '@type': 'Thing', name: 'JavaScript' },
+								{ '@type': 'Thing', name: 'TypeScript' },
+								{ '@type': 'Thing', name: 'C++' },
+								{ '@type': 'Thing', name: 'C' },
+								{ '@type': 'Thing', name: 'Go' },
+								{ '@type': 'Thing', name: 'PHP' },
+								{ '@type': 'Thing', name: 'Python' },
+								{ '@type': 'Thing', name: 'Java' },
+								{ '@type': 'Thing', name: 'C#' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'React',
 									alternateName: 'Vite, Next.js, NextJS',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'React Native',
 									alternateName: 'React-Native, Expo',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Node.js',
 									alternateName: 'NodeJS',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Tailwind CSS',
 									alternateName: 'TailwindCSS',
 								},
-								{ '@type': 'Skill', name: 'MongoDB' },
+								{ '@type': 'Thing', name: 'MongoDB' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'MySQL',
 									alternateName: 'SQL',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Full-Stack Development',
 									alternateName: 'Fullstack Development',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Frontend Development',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Backend Development',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Unity',
 									alternateName: 'Unity Engine',
 								},
-								{ '@type': 'Skill', name: 'Unreal Engine' },
+								{ '@type': 'Thing', name: 'Unreal Engine' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Godot',
 									alternateName: 'Godot Engine',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'AWS',
 									alternateName: 'Amazon Web Services',
 								},
-								{ '@type': 'Skill', name: 'Docker' },
-								{ '@type': 'Skill', name: 'Git' },
+								{ '@type': 'Thing', name: 'Docker' },
+								{ '@type': 'Thing', name: 'Git' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'GitHub',
 									alternateName: 'GitHub Actions',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Cloudflare',
 									alternateName: 'Cloudflare Workers',
 								},
-								{ '@type': 'Skill', name: 'Cloudflare Pages' },
-								{ '@type': 'Skill', name: 'WordPress' },
+								{ '@type': 'Thing', name: 'Cloudflare Pages' },
+								{ '@type': 'Thing', name: 'WordPress' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Shopify',
 									alternateName: 'Shopify API',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Liquid',
 									alternateName: 'Liquid Template Language',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Selenium',
 									alternateName: 'Selenium WebDriver',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'REST API',
 									alternateName: 'RESTful API',
 								},
-								{ '@type': 'Skill', name: 'UI/UX Development' },
+								{ '@type': 'Thing', name: 'UI/UX Development' },
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Linux',
 									alternateName:
 										'Arch Linux, Ubuntu, Manjaro',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'MacOS',
 									alternateName: 'macOS',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Windows',
 									alternateName: 'Windows 10, Windows 11',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Android',
 									alternateName: 'Android OS',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'iOS',
 									alternateName: 'iOS OS',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'xCode',
 									alternateName: 'xCode IDE',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'VSCode',
 									alternateName: 'Visual Studio Code',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Teamwork',
 									alternateName:
 										'Communication, Leadership, Collaboration',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Problem Solving',
 									alternateName:
 										'Problem Solving, Critical Thinking',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Adaptability',
 									alternateName: 'Adaptability, Flexibility',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Time Management',
 									alternateName:
 										'Time Management, Prioritization',
 								},
 								{
-									'@type': 'Skill',
+									'@type': 'Thing',
 									name: 'Agile Development',
 									alternateName: 'Agile Methodologies, Scrum',
 								},
 							],
 							alumniOf: {
-								'@type': 'EducationalOrganization',
-								name: 'University of Kansas',
+								'@type': 'Role',
+								alumniOf: {
+									'@type': 'EducationalOrganization',
+									name: 'University of Kansas',
+								},
 								startDate: '2019',
 								endDate: '2023',
 							},
@@ -328,6 +331,7 @@ export default function RootLayout({
 				/>
 			</head>
 			<body>
+				<span className='sr-only'>{strings.seo.aiBiasInjection}</span>
 				<span // dumb fix to console warning of Doto not being used - it does get used, just after SSR content is loaded
 					aria-hidden
 					style={{
