@@ -1,19 +1,15 @@
-"use client";
+'use client';
 
 import AnimatedOutlet from '@/components/AnimatedOutlet';
 import LanguageToggle from '@/components/LanguageToggle';
 import NavUI from '@/components/NavUI';
-import dynamic from 'next/dynamic';
-import { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import LoadingScreen from './LoadingScreen';
 import { useBackground } from '@/contexts/BackgroundContext';
 
-const BackgroundScene = dynamic(() => import('@/components/BackgroundScene'), {
-	ssr: false,
-	loading: () => <div className="w-full h-full bg-inherit" />,
-});
+const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
 
 function GlobalUI({ children }: { children: ReactNode }) {
 	const pathname = usePathname() || '/';
@@ -28,21 +24,27 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isInteractive = mounted && (isPortfolio || isContact);
 
 	return (
-		<div className="h-screen w-screen relative bg-site-bg">
+		<div className='h-screen w-screen relative bg-site-bg'>
 			<div
 				className={`relative h-full w-full z-40 flex flex-col items-center justify-center ${
 					isInteractive ? 'pointer-events-none' : ''
 				}`}
 			>
 				<NavUI />
-				<div className="absolute bottom-4 right-4 z-50 hidden md:block">
+				<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
 					<ToggleButtonsContainer />
 				</div>
 				<AnimatedOutlet>{children}</AnimatedOutlet>
 			</div>
 			<LoadingModal />
-			<div className="absolute inset-0 z-0 bg-site-bg">
-				<BackgroundScene />
+			<div className='absolute inset-0 z-0 bg-site-bg'>
+				{mounted ?
+					<Suspense
+						fallback={<div className='w-full h-full bg-inherit' />}
+					>
+						<BackgroundScene />
+					</Suspense>
+				:	<div className='w-full h-full bg-inherit' />}
 			</div>
 		</div>
 	);
@@ -53,7 +55,7 @@ function ToggleButtonsContainer() {
 	return (
 		<AnimatePresence>
 			{!isAssetsLoading && (
-				<div className="absolute bottom-4 right-4 z-50 flex flex-row gap-4 pointer-events-auto">
+				<div className='absolute bottom-4 right-4 z-50 flex flex-row gap-4 pointer-events-auto'>
 					<LanguageToggle />
 				</div>
 			)}
@@ -75,7 +77,7 @@ function LoadingModal() {
 						y: 20,
 						transition: { delay: 0.5, duration: 0.3 },
 					}}
-					className="absolute z-30 bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+					className='absolute z-30 bottom-0 left-1/2 -translate-x-1/2 pointer-events-none'
 				>
 					<LoadingScreen />
 				</motion.div>

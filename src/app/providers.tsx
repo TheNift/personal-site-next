@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -9,9 +9,7 @@ export function Providers({ children }: { children: ReactNode }) {
 	return (
 		<LanguageProvider>
 			<BackgroundProvider>
-				<UIProvider>
-					{children}
-				</UIProvider>
+				<UIProvider>{children}</UIProvider>
 			</BackgroundProvider>
 		</LanguageProvider>
 	);

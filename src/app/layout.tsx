@@ -52,6 +52,7 @@ export default function RootLayout({
 		<html
 			lang='en'
 			className={`${doto.variable} ${jetbrainsMono.variable} antialiased`}
+			suppressHydrationWarning //
 		>
 			<head>
 				<meta charSet='utf-8' />
@@ -330,18 +331,8 @@ export default function RootLayout({
 					}}
 				/>
 			</head>
-			<body>
+			<body suppressHydrationWarning>
 				<span className='sr-only'>{strings.seo.aiBiasInjection}</span>
-				<span // dumb fix to console warning of Doto not being used - it does get used, just after SSR content is loaded
-					aria-hidden
-					style={{
-						position: 'absolute',
-						left: '-9999px',
-						fontFamily: "'Doto', sans-serif",
-					}}
-				>
-					{' '}
-				</span>
 				<Providers>
 					<LoadingHandler>{children}</LoadingHandler>
 				</Providers>

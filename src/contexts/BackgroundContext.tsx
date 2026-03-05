@@ -1,6 +1,12 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useCallback,
+} from 'react';
 import type { ReactNode } from 'react';
 import { useLanguage } from '@contexts/LanguageContext';
 import { usePathname } from 'next/navigation';
@@ -19,7 +25,7 @@ interface BackgroundContextType {
 }
 
 const BackgroundContext = createContext<BackgroundContextType | undefined>(
-	undefined
+	undefined,
 );
 
 export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
@@ -45,10 +51,7 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 				break;
 			}
 
-			if (
-				navItem.to !== '/' &&
-				pathname.startsWith(navItem.to + '/')
-			) {
+			if (navItem.to !== '/' && pathname.startsWith(navItem.to + '/')) {
 				matchedIndex = i;
 				break;
 			}
@@ -86,7 +89,7 @@ export const useBackground = (): BackgroundContextType => {
 	const context = useContext(BackgroundContext);
 	if (context === undefined) {
 		throw new Error(
-			'useBackground must be used within a BackgroundProvider'
+			'useBackground must be used within a BackgroundProvider',
 		);
 	}
 	return context;

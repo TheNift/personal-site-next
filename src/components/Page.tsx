@@ -1,7 +1,6 @@
 "use client";
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { useBackground } from '@contexts/BackgroundContext';
-import { usePathname } from 'next/navigation';
 
 function Page({
 	children,
@@ -10,7 +9,6 @@ function Page({
 	children: React.ReactNode;
 	className?: string;
 }) {
-	const pathname = usePathname();
 	const { isAssetsLoading } = useBackground();
 	return (
 		<motion.div
@@ -21,16 +19,9 @@ function Page({
 				duration: 0.3,
 				ease: 'easeInOut',
 			}}
-			className={`w-full h-full`}
+			className={`w-full h-full ${className}`}
 		>
-			<AnimatePresence mode="wait">
-				<div
-					key={pathname || '/'}
-					className={`w-full h-full ${className}`}
-				>
-					{children}
-				</div>
-			</AnimatePresence>
+			{children}
 		</motion.div>
 	);
 }
