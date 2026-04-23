@@ -29,7 +29,7 @@ void main() {
 	vec4 texel = texture2D(tDiffuse, vUv);
 
 	vec3 colorDiff = abs(texel.rgb - maskColor);
-	float tolerance = 0.00001;
+	float tolerance = 0.002;
 	bool isMaskColor = all(lessThan(colorDiff, vec3(tolerance)));
 
 	if (isMaskColor) {

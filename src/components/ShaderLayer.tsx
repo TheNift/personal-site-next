@@ -1,4 +1,5 @@
-"use client";
+'use client';
+import { WebGLRenderTarget, NearestFilter } from 'three';
 import { useRef, useEffect } from 'react';
 import { extend, useThree, useFrame } from '@react-three/fiber';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -23,7 +24,9 @@ export const ShaderLayer: React.FC<ShaderLayerProps> = ({
 	const shaderPassRef = useRef<ShaderPass | null>(null);
 
 	useEffect(() => {
-		const composer = new EffectComposer(gl);
+		const target = new WebGLRenderTarget(320, 240);
+		target.texture.magFilter = NearestFilter;
+		const composer = new EffectComposer(gl, target);
 		composerRef.current = composer;
 
 		const renderPass = new RenderPass(scene, camera);
@@ -49,7 +52,7 @@ export const ShaderLayer: React.FC<ShaderLayerProps> = ({
 			if (shaderPassRef.current.uniforms.resolution) {
 				shaderPassRef.current.uniforms.resolution.value.set(
 					size.width,
-					size.height
+					size.height,
 				);
 			}
 		}

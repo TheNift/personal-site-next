@@ -181,18 +181,9 @@ function SceneReadyDetector({ onReady }: { onReady: () => void }) {
 	return null;
 }
 
-// let _bgSceneMountCount = 0;
 const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
-
-	// useEffect(() => {
-	// 	_bgSceneMountCount++;
-	// 	const id = _bgSceneMountCount;
-	// 	console.warn(`[DEBUG] BackgroundScene MOUNTED (instance #${id})`);
-	// 	return () =>
-	// 		console.warn(`[DEBUG] BackgroundScene UNMOUNTED (instance #${id})`);
-	// }, []);
 
 	const { cameraPosition, isAssetsLoading } = useBackground();
 	const { strings } = useLanguage();

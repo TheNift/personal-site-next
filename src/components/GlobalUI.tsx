@@ -11,13 +11,49 @@ import { useBackground } from '@/contexts/BackgroundContext';
 
 const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
 
+const checkHardwareAcceleration = () => {
+	try {
+		const canvas = document.createElement('canvas');
+		const gl = (canvas.getContext('webgl', {
+			failIfMajorPerformanceCaveat: true,
+		}) ||
+			canvas.getContext('experimental-webgl', {
+				failIfMajorPerformanceCaveat: true,
+			})) as WebGLRenderingContext | null;
+		if (!gl) return false;
+
+		const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+		if (debugInfo) {
+			const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)?.toLowerCase() || '';
+			if (
+				renderer.includes('swiftshader') ||
+				renderer.includes('llvmpipe') ||
+				renderer.includes('crosvm') ||
+				renderer.includes('software')
+			) {
+				return false;
+			}
+		}
+		return true;
+	} catch (e) {
+		return false;
+	}
+};
+
 function GlobalUI({ children }: { children: ReactNode }) {
 	const pathname = usePathname() || '/';
 	const [mounted, setMounted] = useState(false);
+	const [hasAcceleration, setHasAcceleration] = useState(true);
+	const { setIsAssetsLoading } = useBackground();
 
 	useEffect(() => {
+		const hasAccel = checkHardwareAcceleration();
+		setHasAcceleration(hasAccel);
+		if (!hasAccel) {
+			setIsAssetsLoading(false);
+		}
 		setMounted(true);
-	}, []);
+	}, [setIsAssetsLoading]);
 
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
@@ -38,7 +74,7 @@ function GlobalUI({ children }: { children: ReactNode }) {
 			</div>
 			<LoadingModal />
 			<div className='absolute inset-0 z-0 bg-site-bg'>
-				{mounted ?
+				{mounted && hasAcceleration ?
 					<Suspense
 						fallback={<div className='w-full h-full bg-inherit' />}
 					>
