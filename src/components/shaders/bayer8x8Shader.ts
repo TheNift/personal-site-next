@@ -1,4 +1,4 @@
-import strings from '@data/strings';
+import colors from '@/data/colors';
 import { Color, Texture, Vector2, Vector3 } from 'three';
 import fragmentShader from './bayer8x8/bayer8x8.frag?raw';
 import vertexShader from './bayer8x8/bayer8x8.vert?raw';
@@ -15,9 +15,9 @@ export interface Bayer8x8ShaderUniforms {
 export const createBayer8x8ShaderUniforms = () => ({
 	tDiffuse: { value: null },
 	intensity: { value: 1.0 },
-	colorA: { value: new Color(strings.colors.yorha) },
-	colorB: { value: new Color(strings.colors.yorhaDark) },
-	maskColor: { value: new Color(strings.colors.siteBg) },
+	colorA: { value: new Color(colors.yorha) },
+	colorB: { value: new Color(colors.yorhaDark) },
+	maskColor: { value: new Color(colors.siteBg) },
 	resolution: {
 		value: new Vector2(
 			typeof window !== 'undefined' ? window.innerWidth : 1920,

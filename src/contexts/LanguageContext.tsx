@@ -2,10 +2,15 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { english, vietnamese } from '@data/strings';
+import type { english } from '@data/strings';
 
 type Language = 'eng' | 'viet';
-type StringsType = typeof english;
+export type StringsType = typeof english;
+
+export interface StringsBundle {
+	english: StringsType;
+	vietnamese: Record<string, unknown>;
+}
 
 interface LanguageContextType {
 	language: Language;
@@ -64,9 +69,10 @@ const mergeDeep = (base: any, override: any): any => {
 	return result;
 };
 
-export const LanguageProvider: React.FC<{ children: ReactNode }> = ({
-	children,
-}) => {
+export const LanguageProvider: React.FC<{
+	children: ReactNode;
+	stringsBundle: StringsBundle;
+}> = ({ children, stringsBundle }) => {
 	const [language, setLanguage] = useState<Language>('eng');
 
 	useEffect(() => {
@@ -84,10 +90,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({
 
 	const strings = React.useMemo(() => {
 		if (language === 'viet') {
-			return mergeDeep(english, vietnamese) as StringsType;
+			return mergeDeep(stringsBundle.english, stringsBundle.vietnamese) as StringsType;
 		}
-		return english;
-	}, [language]);
+		return stringsBundle.english;
+	}, [language, stringsBundle]);
 
 	return (
 		<LanguageContext.Provider

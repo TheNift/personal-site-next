@@ -1,13 +1,19 @@
 'use client';
 
 import { BackgroundProvider } from '@/contexts/BackgroundContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
+import { LanguageProvider, StringsBundle } from '@/contexts/LanguageContext';
 import { UIProvider } from '@/contexts/UIContext';
 import { ReactNode } from 'react';
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({
+	children,
+	stringsBundle,
+}: {
+	children: ReactNode;
+	stringsBundle: StringsBundle;
+}) {
 	return (
-		<LanguageProvider>
+		<LanguageProvider stringsBundle={stringsBundle}>
 			<BackgroundProvider>
 				<UIProvider>{children}</UIProvider>
 			</BackgroundProvider>
