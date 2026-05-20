@@ -56,7 +56,7 @@ const english = {
 			basicInfo: {
 				title: 'Basic Info',
 				content: {
-					'Name': { title: 'Name', value: 'Developer' },
+					'Name': { title: 'Name', value: 'Nift' },
 					'Pronouns': { title: 'Pronouns', value: 'He/Him' },
 					'Age': { title: 'Age', value: '2001-03-20' },
 					'Years of Experience': { title: 'Years of Experience', value: '2022-07-01' },
@@ -182,7 +182,6 @@ const english = {
 			title: 'Projects @ Tech Agency',
 			slug: 'p3-projects',
 			description: 'Always making cool stuff at the agency!',
-			image: 'p3-projects.webp',
 			body: 'At the software agency I work on a wide spectrum of projects, from apps to websites to visual displays in game engines. Please reach out to talk about details!',
 		},
 	},
@@ -263,7 +262,7 @@ const vietnamese = {
 			basicInfo: {
 				title: 'Thông tin cơ bản',
 				content: {
-					'Name': { title: 'Họ và tên', value: 'Developer' },
+					'Name': { title: 'Họ và tên', value: 'Nift' },
 					'Pronouns': { title: 'Giới tính', value: 'Nam' },
 					'Age': { title: 'Tuổi', value: '2001-03-20' },
 					'Years of Experience': { title: 'Số năm kinh nghiệm', value: '2022-07-01' },
