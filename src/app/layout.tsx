@@ -7,7 +7,7 @@ import { english, vietnamese } from '@/data/strings';
 import { englishAnonymous, vietnameseAnonymous } from '@/data/strings_anonymous';
 import '@/assets/index.css';
 
-function checkIsJackKill(host: string): boolean {
+function checkIsPersonal(host: string): boolean {
 	const domain = host.split(':')[0];
 	return (
 		domain === 'jackkill.com' ||
@@ -19,9 +19,9 @@ function checkIsJackKill(host: string): boolean {
 
 export async function generateMetadata(): Promise<Metadata> {
 	const host = (await headers()).get('host') || '';
-	const isJackKill = checkIsJackKill(host);
+	const isPersonal = checkIsPersonal(host);
 
-	const activeStrings = isJackKill ? english : englishAnonymous;
+	const activeStrings = isPersonal ? english : englishAnonymous;
 	const { title, description, url, ogImage } = activeStrings.seo;
 
 	return {
@@ -67,9 +67,9 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }) {
 	const host = (await headers()).get('host') || '';
-	const isJackKill = checkIsJackKill(host);
+	const isPersonal = checkIsPersonal(host);
 
-	const activeStrings = isJackKill
+	const activeStrings = isPersonal
 		? { english, vietnamese }
 		: { english: englishAnonymous, vietnamese: vietnameseAnonymous };
 
@@ -81,7 +81,7 @@ export default async function RootLayout({
 		>
 			<head>
 				<meta charSet='utf-8' />
-				{isJackKill && (
+				{isPersonal && (
 					<script
 						type='application/ld+json'
 						dangerouslySetInnerHTML={{

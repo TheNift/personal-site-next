@@ -5,7 +5,16 @@ import type { ReactNode } from 'react';
 import type { english } from '@data/strings';
 
 type Language = 'eng' | 'viet';
-export type StringsType = typeof english;
+export type StringsType = Omit<typeof english, 'projects'> & {
+	projects: {
+		[K in keyof typeof english['projects']]: Omit<
+			typeof english['projects'][K],
+			'image'
+		> & {
+			image?: string;
+		};
+	};
+};
 
 export interface StringsBundle {
 	english: StringsType;

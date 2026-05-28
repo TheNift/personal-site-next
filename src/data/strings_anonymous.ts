@@ -388,7 +388,6 @@ const vietnamese = {
 			title: 'Dự án tại Công ty Công nghệ',
 			slug: 'p3-projects',
 			description: 'Luôn tạo ra những sản phẩm thú vị tại công ty!',
-			image: 'p3-projects.webp',
 			body: 'Tại công ty công nghệ, tôi làm việc trên nhiều dự án khác nhau, từ ứng dụng, trang web đến các hiển thị trực quan trong công cụ trò chơi. Hãy liên hệ để trao đổi chi tiết!',
 		},
 	},
