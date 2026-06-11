@@ -52,3 +52,5 @@ next-env.d.ts
 .wrangler
 .wrangler/
 .wrangler/*
+
+.vinext/dev/lock.json
