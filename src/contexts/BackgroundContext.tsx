@@ -5,6 +5,7 @@ import React, {
 	useContext,
 	useState,
 	useEffect,
+	useLayoutEffect,
 	useCallback,
 } from 'react';
 import type { ReactNode } from 'react';
@@ -28,19 +29,59 @@ const BackgroundContext = createContext<BackgroundContextType | undefined>(
 	undefined,
 );
 
+// Module-level caches — survive component remounts within the same JS session.
+let cachedCameraPosition = 0;
+let cachedPageIndex = 0;
+let cachedAssetsLoaded = false;
+
 export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
-	const [cameraPosition, setCameraPosition] = useState(0);
-	const [currentPageIndex, setCurrentPageIndex] = useState(0);
-	const [isAssetsLoading, setIsAssetsLoading] = useState(true);
+	// Camera/page state: module cache preserves across remounts.
+	const [cameraPosition, setCameraPositionRaw] = useState(() => cachedCameraPosition);
+	const [currentPageIndex, setCurrentPageIndexRaw] = useState(() => cachedPageIndex);
+
+	// CRITICAL: Always initialize as true to match SSR output.
+	// The actual value is set in useLayoutEffect (before browser paint) to
+	// avoid both hydration mismatch AND visual flash.
+	const [isAssetsLoading, setIsAssetsLoadingRaw] = useState(true);
+
+	// useLayoutEffect runs after React commits DOM but BEFORE browser paints.
+	// This means: hydration sees true (matches SSR) → layout effect fires →
+	// sets to false → browser paints with false. No hydration mismatch, no flash.
+	useLayoutEffect(() => {
+		if (cachedAssetsLoaded || sessionStorage.getItem('assets-loaded') === 'true') {
+			cachedAssetsLoaded = true;
+			setIsAssetsLoadingRaw(false);
+		}
+	}, []);
+
+	const setCameraPosition = useCallback((index: number) => {
+		cachedCameraPosition = index;
+		setCameraPositionRaw(index);
+	}, []);
+
+	const setCurrentPageIndex = useCallback((index: number) => {
+		cachedPageIndex = index;
+		setCurrentPageIndexRaw(index);
+	}, []);
+
+	const setIsAssetsLoading = useCallback((loading: boolean) => {
+		if (!loading) {
+			sessionStorage.setItem('assets-loaded', 'true');
+			cachedAssetsLoaded = true;
+		}
+		setIsAssetsLoadingRaw(loading);
+	}, []);
+
 	const [loadingProgress, setLoadingProgress] = useState(0);
 	const [isCameraMoving, setIsCameraMoving] = useState(true);
 	const { strings } = useLanguage();
 	const pathname = usePathname() || '/';
 
 	const updatePageIndex = useCallback(() => {
-		const navItems = strings.ui.nav;
+		const navItems = strings.ui?.nav;
+		if (!navItems?.length) return;
 		let matchedIndex = 0;
 
 		for (let i = 0; i < navItems.length; i++) {
@@ -59,7 +100,7 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 
 		setCurrentPageIndex(matchedIndex);
 		setCameraPosition(matchedIndex);
-	}, [pathname, strings.ui.nav]);
+	}, [pathname, strings.ui?.nav, setCurrentPageIndex, setCameraPosition]);
 
 	useEffect(() => {
 		updatePageIndex();

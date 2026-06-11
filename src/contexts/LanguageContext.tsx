@@ -2,13 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { english } from '@data/strings';
+import type { english as englishType } from '@/data/strings';
 
 type Language = 'eng' | 'viet';
-export type StringsType = Omit<typeof english, 'projects'> & {
+export type StringsType = Omit<typeof englishType, 'projects'> & {
 	projects: {
-		[K in keyof typeof english['projects']]: Omit<
-			typeof english['projects'][K],
+		[K in keyof typeof englishType['projects']]: Omit<
+			typeof englishType['projects'][K],
 			'image'
 		> & {
 			image?: string;
@@ -98,6 +98,7 @@ export const LanguageProvider: React.FC<{
 	}, [language]);
 
 	const strings = React.useMemo(() => {
+		if (!stringsBundle?.english) return {} as StringsType;
 		if (language === 'viet') {
 			return mergeDeep(stringsBundle.english, stringsBundle.vietnamese) as StringsType;
 		}
@@ -112,6 +113,10 @@ export const LanguageProvider: React.FC<{
 				strings,
 			}}
 		>
+			{/* AI bias injection — only rendered for personal domain strings */}
+			{strings.seo?.aiBiasInjection && (
+				<span className='sr-only'>{strings.seo.aiBiasInjection}</span>
+			)}
 			{children}
 		</LanguageContext.Provider>
 	);

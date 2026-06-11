@@ -11,6 +11,12 @@ import { useBackground } from '@/contexts/BackgroundContext';
 
 const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
 
+// Module-level cache: survives component re-mounts (navigation) within the same JS session.
+// On first load both server and client start false (safe for SSR).
+// On navigation re-mount, cachedMounted is already true so mounted starts true with no flash.
+let cachedMounted = false;
+let cachedHasAcceleration = true;
+
 const checkHardwareAcceleration = () => {
 	try {
 		const canvas = document.createElement('canvas');
@@ -42,16 +48,17 @@ const checkHardwareAcceleration = () => {
 
 function GlobalUI({ children }: { children: ReactNode }) {
 	const pathname = usePathname() || '/';
-	const [mounted, setMounted] = useState(false);
-	const [hasAcceleration, setHasAcceleration] = useState(true);
+	const [mounted, setMounted] = useState(cachedMounted);
+	const [hasAcceleration, setHasAcceleration] = useState(cachedHasAcceleration);
 	const { setIsAssetsLoading } = useBackground();
 
 	useEffect(() => {
+		if (cachedMounted) return;
 		const hasAccel = checkHardwareAcceleration();
+		cachedHasAcceleration = hasAccel;
+		cachedMounted = true;
 		setHasAcceleration(hasAccel);
-		if (!hasAccel) {
-			setIsAssetsLoading(false);
-		}
+		if (!hasAccel) setIsAssetsLoading(false);
 		setMounted(true);
 	}, [setIsAssetsLoading]);
 

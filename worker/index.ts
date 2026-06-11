@@ -1,8 +1,9 @@
+import "./set-env";
 import handler from "vinext/server/app-router-entry";
 import { handleImageOptimization } from "vinext/server/image-optimization";
 
 interface Env {
-	ASSETS: Fetcher;
+	ASSETS: { fetch: (req: Request | string) => Promise<Response> };
 	IMAGES: {
 		input(stream: ReadableStream): {
 			transform(options: Record<string, unknown>): {
@@ -16,7 +17,7 @@ const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> 
 	{
 		pattern: "/*",
 		headers: {
-			"Cache-Control": "public, max-age=604800",
+			"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
 			"X-Frame-Options": "DENY",
 			"X-Content-Type-Options": "nosniff",
 			"Referrer-Policy": "strict-origin-when-cross-origin",
@@ -96,14 +97,20 @@ function matchesPattern(pathname: string, pattern: string): boolean {
 	return new RegExp(regexStr).test(pathname);
 }
 
-function applyHeaderRules(response: Response, pathname: string): Response {
+function applyHeaderRules(response: Response, pathname: string, isRsc: boolean): Response {
 	const headers = new Headers(response.headers);
 	for (const rule of HEADER_RULES) {
 		if (matchesPattern(pathname, rule.pattern)) {
 			for (const [name, value] of Object.entries(rule.headers)) {
+				if (name.toLowerCase() === "cache-control" && (headers.has("Cache-Control") || isRsc)) {
+					continue;
+				}
 				headers.set(name, value);
 			}
 		}
+	}
+	if (isRsc) {
+		headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
 	}
 	return new Response(response.body, {
 		status: response.status,
@@ -115,6 +122,11 @@ function applyHeaderRules(response: Response, pathname: string): Response {
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
+		// console.log("[SERVER WORKER DEBUG] url:", request.url);
+		// console.log("[SERVER WORKER DEBUG] process.env:", typeof process !== "undefined" ? JSON.stringify(process.env) : "no process");
+		// console.log("[SERVER WORKER DEBUG] env keys:", Object.keys(env));
+
+		const isRsc = request.headers.get("RSC") === "1" || url.searchParams.has("_rsc");
 
 		if (url.pathname === "/_vinext/image") {
 			const response = await handleImageOptimization(request, {
@@ -124,10 +136,10 @@ export default {
 					return result.response();
 				},
 			});
-			return applyHeaderRules(response, url.pathname);
+			return applyHeaderRules(response, url.pathname, isRsc);
 		}
 
 		const response = await handler.fetch(request);
-		return applyHeaderRules(response, url.pathname);
+		return applyHeaderRules(response, url.pathname, isRsc);
 	},
 };

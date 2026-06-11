@@ -5,8 +5,14 @@ import GlobalUI from '@/components/GlobalUI';
 import { useBackground } from '@/contexts/BackgroundContext';
 
 const LoadingHandler = ({ children }: { children: ReactNode }) => {
-	const { setIsAssetsLoading, setLoadingProgress } = useBackground();
+	const { isAssetsLoading, setIsAssetsLoading, setLoadingProgress } = useBackground();
+
 	useEffect(() => {
+		// If assets are already loaded (from a previous mount this session),
+		// skip the entire loading sequence. This prevents the loading screen
+		// from flashing on navigation when vinext remounts the component tree.
+		if (!isAssetsLoading) return;
+
 		const loadScene = async () => {
 			try {
 				setLoadingProgress(10);
@@ -32,7 +38,8 @@ const LoadingHandler = ({ children }: { children: ReactNode }) => {
 		} else {
 			setTimeout(loadScene, 0);
 		}
-	}, [setIsAssetsLoading, setLoadingProgress]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // Only run once per mount — the guard above handles the "already loaded" case
 
 	return (
 		<GlobalUI>
