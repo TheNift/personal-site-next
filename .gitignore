@@ -13,6 +13,13 @@
 # testing
 /coverage
 
+# vinext
+.vinext
+.vinext/*
+.vite
+.vite/*
+/.vinext/
+
 # next.js
 /.next/
 /out/
