@@ -279,7 +279,7 @@ const BackgroundScene = () => {
 					new Vector3(0, 0, 0),
 			},
 		],
-		[isAssetsLoading],
+		[isAssetsLoading, isFullyLoaded],
 	);
 
 	return (

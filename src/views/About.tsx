@@ -5,7 +5,7 @@ import { useLanguage } from '@contexts/LanguageContext';
 import ScrambleText from '@components/ScrambleText';
 import { AnimatePresence, motion } from 'motion/react';
 import moment from 'moment';
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function About() {
 	const { strings } = useLanguage();
@@ -117,10 +117,10 @@ function AboutCard({
 									:
 								</span>{' '}
 								{key.toLowerCase() === 'age' ? (
-									CalculateAge(content)()
-								) : key.toLowerCase() === 'years of experience' ? (
-									CalculatePreciseAge(content)()
-								) : (
+							<AgeDisplay value={content} />
+						) : key.toLowerCase() === 'years of experience' ? (
+							<PreciseAgeDisplay value={content} />
+						) : (
 									<ScrambleText
 										speed={1}
 										step={4}
@@ -139,38 +139,28 @@ function AboutCard({
 	}
 }
 
-function CalculateAge(value: string) {
-	const [isMounted, setIsMounted] = useState(false);
-	
-	useEffect(() => {
-		setIsMounted(true);
-	}, []);
+function AgeDisplay({ value }: { value: string }) {
+	const [display, setDisplay] = useState<string | null>(null);
 
-	return useCallback(() => {
-		if (!isMounted) return moment('2025-01-01T00:00:00Z').diff(value, 'years', false).toString();
-		return moment().diff(value, 'years', false).toString();
-	}, [value, isMounted]);
+	useEffect(() => {
+		setDisplay(moment().diff(value, 'years', false).toString());
+	}, [value]);
+
+	return <>{display ?? ''}</>;
 }
 
-function CalculatePreciseAge(value: string) {
-	const [isMounted, setIsMounted] = useState(false);
-	const [currentTime, setCurrentTime] = useState(() => moment('2025-01-01T00:00:00Z'));
+function PreciseAgeDisplay({ value }: { value: string }) {
+	const [display, setDisplay] = useState<string | null>(null);
 
 	useEffect(() => {
-		setCurrentTime(moment());
-		setIsMounted(true);
-		
-		const interval = setInterval(() => {
-			setCurrentTime(moment());
-		}, 30);
-
+		const update = () =>
+			setDisplay(moment().diff(value, 'years', true).toFixed(9));
+		update();
+		const interval = setInterval(update, 30);
 		return () => clearInterval(interval);
-	}, []);
+	}, [value]);
 
-	return useCallback(() => {
-		if (!isMounted) return moment('2025-01-01T00:00:00Z').diff(value, 'years', true).toFixed(9).toString();
-		return currentTime.diff(value, 'years', true).toFixed(9).toString();
-	}, [value, currentTime, isMounted]);
+	return <>{display ?? ''}</>;
 }
 
 export default About;
