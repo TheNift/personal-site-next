@@ -96,7 +96,7 @@ function GalleryView() {
 
 				{/* Image grid */}
 				{!loading && images.length > 0 && (
-					<div className='gallery-grid w-full max-w-[1400px] px-4 md:px-8 pb-8'>
+					<div className='gallery-grid w-full lg:px-[300px] px-4 md:px-8 pb-8'>
 						{images.map((image, index) => (
 							<motion.button
 								key={image.key}
