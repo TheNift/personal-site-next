@@ -12,6 +12,7 @@ function GalleryView() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 	const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+	const [loadedImageKeys, setLoadedImageKeys] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
 		fetch('/api/gallery')
@@ -47,6 +48,16 @@ function GalleryView() {
 		setLightboxIndex(index);
 	}, []);
 
+	const handleImageLoad = useCallback((key: string) => {
+		setLoadedImageKeys((prev) => {
+			const next = new Set(prev);
+			next.add(key);
+			return next;
+		});
+	}, []);
+
+	const allImagesLoaded = images.length > 0 && loadedImageKeys.size === images.length;
+
 	return (
 		<Page className='relative flex flex-col items-center justify-start pointer-events-auto overflow-hidden'>
 			<div className='w-full h-full flex flex-col items-center pt-[32px] md:pt-[24px] overflow-y-auto hidden-scrollbar'>
@@ -61,7 +72,7 @@ function GalleryView() {
 				</motion.h1>
 
 				{/* Loading skeleton */}
-				{loading && (
+				{(loading || (!allImagesLoaded && images.length > 0)) && (
 					<div className='gallery-grid w-full max-w-[1400px] px-4 md:px-8'>
 						{Array.from({ length: 8 }).map((_, i) => (
 							<div
@@ -97,18 +108,26 @@ function GalleryView() {
 
 				{/* Image grid */}
 				{!loading && images.length > 0 && (
-					<div className='gallery-grid w-full lg:px-[300px] px-4 md:px-8 pb-8'>
-						{images.map((image, index) => (
+					<motion.div
+						className={`gallery-grid w-full lg:px-[300px] px-4 md:px-8 pb-8 ${allImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
+						variants={{
+							hidden: {},
+							visible: {
+								transition: { staggerChildren: 0.05 }
+							}
+						}}
+						initial='hidden'
+						animate={allImagesLoaded ? 'visible' : 'hidden'}
+					>
+						{images.map((image) => (
 							<motion.button
 								key={image.key}
-								initial={{ opacity: 0, scale: 0.95 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{
-									duration: 0.3,
-									delay: Math.min(index * 0.05, 0.5),
+								variants={{
+									hidden: { opacity: 0, scale: 0.95 },
+									visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
 								}}
 								className='gallery-thumbnail'
-								onClick={() => handleOpenLightbox(index)}
+								onClick={() => handleOpenLightbox(images.indexOf(image))}
 								onMouseEnter={() => handleThumbnailHover(image.key)}
 								aria-label={image.title || image.key}
 							>
@@ -119,6 +138,9 @@ function GalleryView() {
 									height={480}
 									quality={80}
 									className='gallery-thumbnail-img'
+									onLoad={() => handleImageLoad(image.key)}
+									onError={() => handleImageLoad(image.key)}
+									loading='eager'
 								/>
 								{image.title && (
 									<div className='gallery-thumbnail-overlay'>
@@ -129,7 +151,7 @@ function GalleryView() {
 								)}
 							</motion.button>
 						))}
-					</div>
+					</motion.div>
 				)}
 			</div>
 
