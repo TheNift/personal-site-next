@@ -62,9 +62,11 @@ function GlobalUI({ children }: { children: ReactNode }) {
 		setMounted(true);
 	}, [setIsAssetsLoading]);
 
+	const isHome = pathname === '/';
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
-	const isInteractive = mounted && (isPortfolio || isContact);
+	const isGallery = pathname === '/gallery';
+	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
 
 	return (
 		<div className='h-screen w-screen relative bg-site-bg'>

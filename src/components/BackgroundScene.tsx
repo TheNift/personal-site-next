@@ -9,7 +9,7 @@ import {
 	Suspense,
 } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, Html } from '@react-three/drei';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Vector3, Color } from 'three';
@@ -184,6 +184,7 @@ function SceneReadyDetector({ onReady }: { onReady: () => void }) {
 const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+	const [monitorHovered, setMonitorHovered] = useState(false);
 
 	const { cameraPosition, isAssetsLoading } = useBackground();
 	const { strings } = useLanguage();
@@ -198,6 +199,7 @@ const BackgroundScene = () => {
 		router.prefetch('/experience');
 		router.prefetch('/portfolio');
 		router.prefetch('/contact');
+		router.prefetch('/gallery');
 	}, [router]);
 	const pathname = usePathname();
 	const location = { pathname: pathname || '/' };
@@ -275,8 +277,15 @@ const BackgroundScene = () => {
 			{
 				position: new Vector3(-1.1, 3.4, 3),
 				lookAt:
-					modelRefs.phone.current?.location.clone() ||
+				modelRefs.phone.current?.location.clone() ||
 					new Vector3(0, 0, 0),
+			},
+			// Gallery - zoomed into monitor
+			{
+				position: new Vector3(-3.48, 4.7, 2.5),
+				lookAt: new Vector3(-3.48, 4.35, 4.2),
+				mobilePosition: new Vector3(-3.48, 4.35, 2.5),
+				mobileLookAt: new Vector3(-3.48, 4.35, 4.2),
 			},
 		],
 		[isAssetsLoading, isFullyLoaded],
@@ -364,6 +373,46 @@ const BackgroundScene = () => {
 						castShadow={true}
 						suspense={true}
 					/>
+					{/* Monitor hitbox for Gallery navigation — Home screen only */}
+					<group>
+						<mesh
+							position={[-3.48, 4.35, 3.95]}
+							onPointerOver={(e) => {
+								e.stopPropagation();
+								if (cameraPosition === 0 && location.pathname === '/') {
+									setMonitorHovered(true);
+									document.body.style.cursor = 'pointer';
+								}
+							}}
+							onPointerOut={() => {
+								setMonitorHovered(false);
+								document.body.style.cursor = 'auto';
+							}}
+							onClick={(e) => {
+								e.stopPropagation();
+								if (cameraPosition === 0 && location.pathname === '/') {
+									navigate('/gallery');
+								}
+							}}
+						>
+							<boxGeometry args={[2.2, 1.4, 0.1]} />
+							<meshBasicMaterial visible={false} />
+						</mesh>
+						<group position={[-3.48, 5.3, 3.95]}>
+							<Html>
+								<div
+									className='pointer-events-none bg-black/80 text-white px-2 py-1 rounded text-sm whitespace-nowrap'
+									style={{
+										opacity: monitorHovered ? 1 : 0,
+										transition: 'opacity 150ms ease',
+										transform: 'translateX(-50%)',
+									}}
+								>
+									Gallery
+								</div>
+							</Html>
+						</group>
+					</group>
 					<group
 						position={[-3.48, 4.35, 3.95]}
 						rotation={[0.06 * Math.PI, 1 * Math.PI, 0]}

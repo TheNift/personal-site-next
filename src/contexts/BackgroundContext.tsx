@@ -80,6 +80,13 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	const pathname = usePathname() || '/';
 
 	const updatePageIndex = useCallback(() => {
+		// Gallery has its own camera position (monitor zoom) outside the nav
+		if (pathname === '/gallery') {
+			setCurrentPageIndex(5);
+			setCameraPosition(5);
+			return;
+		}
+
 		const navItems = strings.ui?.nav;
 		if (!navItems?.length) return;
 		let matchedIndex = 0;
