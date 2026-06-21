@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import Image from 'next/image';
 import Page from '@components/Page';
 import GalleryLightbox from '@components/GalleryLightbox';
 import type { GalleryImage } from '@/types/gallery';
@@ -30,7 +31,7 @@ function GalleryView() {
 
 	const handleThumbnailHover = useCallback((key: string) => {
 		// Preload full-quality image on hover
-		const img = new Image();
+		const img = new window.Image();
 		img.src = `/api/gallery/image/${encodeURIComponent(key)}`;
 	}, []);
 
@@ -111,10 +112,12 @@ function GalleryView() {
 								onMouseEnter={() => handleThumbnailHover(image.key)}
 								aria-label={image.title || image.key}
 							>
-								<img
-									src={`/api/gallery/image/${encodeURIComponent(image.key)}?thumb=1`}
+								<Image
+									src={`/api/gallery/image/${encodeURIComponent(image.key)}`}
 									alt={image.title || image.key}
-									loading='lazy'
+									width={720}
+									height={480}
+									quality={80}
 									className='gallery-thumbnail-img'
 								/>
 								{image.title && (

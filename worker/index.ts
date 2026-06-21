@@ -173,33 +173,10 @@ async function handleGalleryList(env: Env): Promise<Response> {
 	});
 }
 
-async function handleGalleryImage(key: string, isThumb: boolean, env: Env): Promise<Response> {
+async function handleGalleryImage(key: string, env: Env): Promise<Response> {
 	const object = await env.GALLERY_BUCKET.get(key);
 	if (!object) {
 		return new Response("Not found", { status: 404 });
-	}
-
-	if (isThumb && object.body) {
-		try {
-			const result = await env.IMAGES.input(object.body)
-				.transform({ width: 720 })
-				.output({ format: "webp", quality: 80 });
-			const thumbResponse = result.response();
-			const headers = new Headers(thumbResponse.headers);
-			headers.set("Content-Type", "image/webp");
-			headers.set("Cache-Control", "public, max-age=2592000, immutable");
-			return new Response(thumbResponse.body, { status: 200, headers });
-		} catch {
-			// If transform fails, fall through to serving original
-			const fallbackObject = await env.GALLERY_BUCKET.get(key);
-			if (!fallbackObject) return new Response("Not found", { status: 404 });
-			return new Response(fallbackObject.body, {
-				headers: {
-					"Content-Type": contentTypeFromKey(key),
-					"Cache-Control": "public, max-age=2592000, immutable",
-				},
-			});
-		}
 	}
 
 	return new Response(object.body, {
@@ -239,8 +216,7 @@ export default {
 
 		if (url.pathname.startsWith("/api/gallery/image/")) {
 			const key = decodeURIComponent(url.pathname.replace("/api/gallery/image/", ""));
-			const isThumb = url.searchParams.has("thumb");
-			return handleGalleryImage(key, isThumb, env);
+			return handleGalleryImage(key, env);
 		}
 
 		const response = await handler.fetch(request);
