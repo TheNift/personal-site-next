@@ -173,10 +173,42 @@ async function handleGalleryList(env: Env): Promise<Response> {
 	});
 }
 
-async function handleGalleryImage(key: string, env: Env): Promise<Response> {
+async function handleGalleryImage(key: string, url: URL, env: Env): Promise<Response> {
 	const object = await env.GALLERY_BUCKET.get(key);
 	if (!object) {
 		return new Response("Not found", { status: 404 });
+	}
+
+	const width = parseInt(url.searchParams.get("w") || "0", 10);
+	const quality = parseInt(url.searchParams.get("q") || "85", 10);
+	const format = url.searchParams.get("fmt") || "webp";
+
+	// Resize via Cloudflare Images binding when width is requested
+	if (width > 0 && env.IMAGES) {
+		try {
+			const result = await env.IMAGES
+				.input(object.body)
+				.transform({ width })
+				.output({ format, quality });
+			const resized = result.response();
+			return new Response(resized.body, {
+				headers: {
+					"Content-Type": `image/${format}`,
+					"Cache-Control": "public, max-age=2592000, immutable",
+				},
+			});
+		} catch {
+			// If transformation fails (e.g. local dev), re-fetch the original
+			// since the stream was consumed by the failed transform
+			const fallback = await env.GALLERY_BUCKET.get(key);
+			if (!fallback) return new Response("Not found", { status: 404 });
+			return new Response(fallback.body, {
+				headers: {
+					"Content-Type": fallback.httpMetadata?.contentType || contentTypeFromKey(key),
+					"Cache-Control": "public, max-age=2592000, immutable",
+				},
+			});
+		}
 	}
 
 	return new Response(object.body, {
@@ -216,7 +248,7 @@ export default {
 
 		if (url.pathname.startsWith("/api/gallery/image/")) {
 			const key = decodeURIComponent(url.pathname.replace("/api/gallery/image/", ""));
-			return handleGalleryImage(key, env);
+			return handleGalleryImage(key, url, env);
 		}
 
 		const response = await handler.fetch(request);

@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import Image from 'next/image';
 import Page from '@components/Page';
 import GalleryLightbox from '@components/GalleryLightbox';
 import type { GalleryImage } from '@/types/gallery';
+
+const thumbnailUrl = (key: string) =>
+	`/api/gallery/image/${encodeURIComponent(key)}?w=720&q=80&fmt=webp`;
+const fullUrl = (key: string) =>
+	`/api/gallery/image/${encodeURIComponent(key)}`;
 
 function GalleryView() {
 	const [images, setImages] = useState<GalleryImage[]>([]);
@@ -31,9 +35,9 @@ function GalleryView() {
 	}, []);
 
 	const handleThumbnailHover = useCallback((key: string) => {
-		// Preload full-quality image on hover
+		// Preload full-quality image on hover for instant lightbox display
 		const img = new window.Image();
-		img.src = `/api/gallery/image/${encodeURIComponent(key)}`;
+		img.src = fullUrl(key);
 	}, []);
 
 	const handleOpenLightbox = useCallback((index: number) => {
@@ -131,16 +135,14 @@ function GalleryView() {
 								onMouseEnter={() => handleThumbnailHover(image.key)}
 								aria-label={image.title || image.key}
 							>
-								<Image
-									src={`/api/gallery/image/${encodeURIComponent(image.key)}`}
+								<img
+									src={thumbnailUrl(image.key)}
 									alt={image.title || image.key}
-									width={720}
-									height={480}
-									quality={80}
 									className='gallery-thumbnail-img'
 									onLoad={() => handleImageLoad(image.key)}
 									onError={() => handleImageLoad(image.key)}
 									loading='eager'
+									draggable={false}
 								/>
 								{image.title && (
 									<div className='gallery-thumbnail-overlay'>
