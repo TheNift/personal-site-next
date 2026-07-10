@@ -124,7 +124,7 @@ function GalleryView() {
 				{/* Image grid */}
 				{!loading && images.length > 0 && (
 					<motion.div
-						className={`gallery-grid w-full lg:px-[300px] px-4 md:px-8 pb-8 ${allImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
+						className={`gallery-grid w-full lg:px-[200px] px-4 md:px-8 pb-8 ${allImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
 						variants={{
 							hidden: {},
 							visible: {
