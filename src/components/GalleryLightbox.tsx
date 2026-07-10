@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import type { GalleryImage } from '@/types/gallery';
 
 interface GalleryLightboxProps {
@@ -148,10 +148,24 @@ function GalleryLightbox({
 				className='lightbox-frame'
 			>
 				{/* Image container */}
-				<div className='lightbox-image-container'>
-					{!imageLoaded && (
-						<div className='lightbox-image-skeleton' />
-					)}
+				<div className='lightbox-image-container min-w-[200px]'>
+					<AnimatePresence>
+						{!imageLoaded && (
+							<motion.div
+								initial={{ opacity: 0 }}
+								animate={{ opacity: 1 }}
+								exit={{ opacity: 0 }}
+								transition={{ duration: 0.2 }}
+								className='absolute inset-0 flex items-center justify-center pointer-events-none'
+							>
+								<motion.div
+									animate={{ rotate: 360 }}
+									transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+									className='w-10 h-10 border-[3px] border-black/10 border-t-black/60 rounded-full'
+								/>
+							</motion.div>
+						)}
+					</AnimatePresence>
 					<img
 						src={`/api/gallery/image/${encodeURIComponent(image.key)}`}
 						alt={image.title || image.key}
