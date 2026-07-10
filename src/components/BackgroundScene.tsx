@@ -424,8 +424,8 @@ const BackgroundScene = () => {
 									{location.pathname === '/gallery' && (
 										<Html
 											transform
-											position={[3, -1.5, 0.01]}
-											scale={(92 / 1280) / 0.04}
+											position={[0.75, -0.5, 0.01]}
+											scale={(90 / 1280) / 0.04}
 										>
 											<div
 												style={{
