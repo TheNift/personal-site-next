@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import Page from '@components/Page';
 import GalleryLightbox from '@components/GalleryLightbox';
 import type { GalleryImage } from '@/types/gallery';
+import { preload } from 'react-dom';
 
 const thumbnailUrl = (key: string) =>
 	`/api/gallery/thumbnail/${encodeURIComponent(key)}`;
@@ -12,6 +13,8 @@ const fullUrl = (key: string) =>
 	`/api/gallery/image/${encodeURIComponent(key)}`;
 
 function GalleryView() {
+	preload('/api/gallery', { as: 'fetch', crossOrigin: 'anonymous' });
+	
 	const [images, setImages] = useState<GalleryImage[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -25,6 +28,15 @@ function GalleryView() {
 				return res.json() as Promise<GalleryImage[]>;
 			})
 			.then((data) => {
+				if (data.length > 0) {
+					const firstImgUrl = thumbnailUrl(data[0].key);
+					const preloadLink = document.createElement('link');
+					preloadLink.rel = 'preload';
+					preloadLink.as = 'image';
+					preloadLink.href = firstImgUrl;
+					preloadLink.fetchPriority = 'high';
+					document.head.appendChild(preloadLink);
+				}
 				setImages(data);
 				setLoading(false);
 			})
@@ -35,7 +47,6 @@ function GalleryView() {
 	}, []);
 
 	const handleThumbnailHover = useCallback((key: string) => {
-		// Preload full-quality image on hover for instant lightbox display
 		const img = new window.Image();
 		img.src = fullUrl(key);
 	}, []);
@@ -123,7 +134,7 @@ function GalleryView() {
 						initial='hidden'
 						animate={allImagesLoaded ? 'visible' : 'hidden'}
 					>
-						{images.map((image) => (
+						{images.map((image, index) => (
 							<motion.button
 								key={image.key}
 								variants={{
@@ -131,7 +142,7 @@ function GalleryView() {
 									visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } }
 								}}
 								className='gallery-thumbnail'
-								onClick={() => handleOpenLightbox(images.indexOf(image))}
+								onClick={() => handleOpenLightbox(index)}
 								onMouseEnter={() => handleThumbnailHover(image.key)}
 								aria-label={image.title || image.key}
 							>
@@ -141,7 +152,8 @@ function GalleryView() {
 									className='gallery-thumbnail-img'
 									onLoad={() => handleImageLoad(image.key)}
 									onError={() => handleImageLoad(image.key)}
-									loading='eager'
+									loading={index < 4 ? 'eager' : 'lazy'}
+									fetchPriority={index === 0 ? 'high' : 'auto'}
 									draggable={false}
 								/>
 								{image.title && (
