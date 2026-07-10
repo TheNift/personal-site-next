@@ -113,7 +113,7 @@ function GalleryView() {
 						variants={{
 							hidden: {},
 							visible: {
-								transition: { staggerChildren: 0.05 }
+								transition: { staggerChildren: 0.1 }
 							}
 						}}
 						initial='hidden'

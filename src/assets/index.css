@@ -156,7 +156,7 @@ canvas {
 
 .gallery-thumbnail:hover {
   border-color: rgba(209, 205, 183, 0.3);
-  transform: scale(1.01);
+  transform: scale(1.025) !important;
 }
 
 .gallery-thumbnail:active {
