@@ -216,6 +216,21 @@ const BackgroundScene = () => {
 		}
 	}, [isAssetsLoading, isSceneReady]);
 
+	useEffect(() => {
+		if (location.pathname === '/gallery') {
+			const triggerResize = () => {
+				window.dispatchEvent(new Event('resize'));
+			};
+			const timer1 = setTimeout(triggerResize, 100);
+			const timer2 = setTimeout(triggerResize, 700);
+
+			return () => {
+				clearTimeout(timer1);
+				clearTimeout(timer2);
+			};
+		}
+	}, [location.pathname]);
+
 	const modelRefs: ModelRefs = {
 		desk: useRef<ModelHandle>(null!),
 		motorcycle: useRef<ModelHandle>(null!),
