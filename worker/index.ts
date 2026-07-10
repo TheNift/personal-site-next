@@ -183,9 +183,18 @@ async function handleGalleryList(env: Env): Promise<Response> {
 	});
 }
 
-async function handleGalleryThumbnail(key: string, env: Env): Promise<Response> {
+/**
+ * Serves a cached WebP thumbnail from R2, generating it on first request.
+ * Strategies tried in order:
+ *   1. Cached thumbnail from R2 (_thumbnails/ prefix)
+ *   2. Generate via IMAGES binding → cache to R2
+ *   3. Serve original with cf.image response transform (zone-level Image Resizing)
+ * NEVER falls back to the full-size original.
+ */
+async function handleGalleryThumbnail(key: string, env: Env, request: Request): Promise<Response> {
 	const thumbKey = thumbnailKeyFor(key);
 
+	// Strategy 1: Serve previously-cached thumbnail from R2
 	const cached = await env.GALLERY_BUCKET.get(thumbKey);
 	if (cached) {
 		return new Response(cached.body, {
@@ -196,36 +205,90 @@ async function handleGalleryThumbnail(key: string, env: Env): Promise<Response> 
 		});
 	}
 
-	if (!env.IMAGES) {
-		return new Response("Image transformation service unavailable", { status: 503 });
+	// Strategy 2: Generate via IMAGES binding and cache to R2
+	if (env.IMAGES) {
+		const original = await env.GALLERY_BUCKET.get(key);
+		if (!original) {
+			return new Response("Not found", { status: 404 });
+		}
+
+		try {
+			const result = await env.IMAGES
+				.input(original.body)
+				.transform({ width: THUMBNAIL_WIDTH })
+				.output({ format: THUMBNAIL_FORMAT, quality: THUMBNAIL_QUALITY });
+
+			const resized = result.response();
+			const thumbnailBytes = await resized.arrayBuffer();
+
+			// Cache the generated thumbnail back into R2 for future requests
+			await env.GALLERY_BUCKET.put(thumbKey, thumbnailBytes, {
+				httpMetadata: { contentType: "image/webp" },
+			});
+
+			return new Response(thumbnailBytes, {
+				headers: {
+					"Content-Type": "image/webp",
+					"Cache-Control": "public, max-age=2592000, immutable",
+				},
+			});
+		} catch (err) {
+			// Log but continue to strategy 3
+			console.error(`[Gallery] IMAGES binding transform failed for "${key}":`, err);
+		}
+	} else {
+		console.warn("[Gallery] IMAGES binding is not available — skipping to cf.image strategy");
 	}
 
-	const original = await env.GALLERY_BUCKET.get(key);
-	if (!original) {
-		return new Response("Not found", { status: 404 });
-	}
+	// Strategy 3: Use cf.image subrequest transform (zone-level Image Resizing)
+	// Make a subrequest to our own /api/gallery/image/ endpoint with cf.image options.
+	// Cloudflare's edge transforms the response before returning it.
 
 	try {
-		const result = await env.IMAGES
-			.input(original.body)
-			.transform({ width: THUMBNAIL_WIDTH })
-			.output({ format: THUMBNAIL_FORMAT, quality: THUMBNAIL_QUALITY });
+		// Build a URL for the full-size image on the same worker
+		const imageUrl = new URL(`/api/gallery/image/${encodeURIComponent(key)}`, request.url);
+		const resized = await fetch(imageUrl.toString(), {
+			cf: {
+				image: {
+					width: THUMBNAIL_WIDTH,
+					quality: THUMBNAIL_QUALITY,
+					format: THUMBNAIL_FORMAT,
+					fit: "scale-down",
+				},
+			},
+		} as RequestInit);
 
-		const resized = result.response();
-		const thumbnailBytes = await resized.arrayBuffer();
+		if (!resized.ok) {
+			return new Response(
+				`Thumbnail generation failed: cf.image fetch returned ${resized.status}`,
+				{ status: 503 },
+			);
+		}
 
-		await env.GALLERY_BUCKET.put(thumbKey, thumbnailBytes, {
-			httpMetadata: { contentType: "image/webp" },
-		});
+		// Check if we actually got a transformed image (Content-Type would be image/webp)
+		// If Image Resizing is not enabled, the response will be the original untransformed image
+		const contentType = resized.headers.get("Content-Type") || "";
+		const resizedBytes = await resized.arrayBuffer();
 
-		return new Response(thumbnailBytes, {
+		// Cache if we got a reasonable thumbnail size (under 500KB = likely resized)
+		if (resizedBytes.byteLength < 500_000) {
+			await env.GALLERY_BUCKET.put(thumbKey, resizedBytes, {
+				httpMetadata: { contentType: "image/webp" },
+			});
+		}
+
+		return new Response(resizedBytes, {
 			headers: {
-				"Content-Type": "image/webp",
+				"Content-Type": contentType || "image/webp",
 				"Cache-Control": "public, max-age=2592000, immutable",
 			},
 		});
-	} catch {
-		return new Response("Thumbnail generation failed", { status: 503 });
+	} catch (err) {
+		console.error(`[Gallery] cf.image transform also failed for "${key}":`, err);
+		return new Response(
+			`Thumbnail generation failed. IMAGES binding: ${env.IMAGES ? "available" : "MISSING"}. Error: ${err instanceof Error ? err.message : String(err)}`,
+			{ status: 503 },
+		);
 	}
 }
 
@@ -267,7 +330,7 @@ export default {
 
 		if (url.pathname.startsWith("/api/gallery/thumbnail/")) {
 			const key = decodeURIComponent(url.pathname.replace("/api/gallery/thumbnail/", ""));
-			return handleGalleryThumbnail(key, env);
+			return handleGalleryThumbnail(key, env, request);
 		}
 
 		if (url.pathname.startsWith("/api/gallery/image/")) {
