@@ -7,7 +7,7 @@ import GalleryLightbox from '@components/GalleryLightbox';
 import type { GalleryImage } from '@/types/gallery';
 
 const thumbnailUrl = (key: string) =>
-	`/api/gallery/image/${encodeURIComponent(key)}?w=720&q=80&fmt=webp`;
+	`/api/gallery/thumbnail/${encodeURIComponent(key)}`;
 const fullUrl = (key: string) =>
 	`/api/gallery/image/${encodeURIComponent(key)}`;
 

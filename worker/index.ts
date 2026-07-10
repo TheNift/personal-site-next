@@ -123,10 +123,14 @@ function applyHeaderRules(response: Response, pathname: string, isRsc: boolean):
 // ---------- Gallery API helpers ----------
 
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "avif", "gif", "tiff", "bmp"]);
+const THUMBNAIL_PREFIX = "_thumbnails/";
+const THUMBNAIL_WIDTH = 720;
+const THUMBNAIL_QUALITY = 80;
+const THUMBNAIL_FORMAT = "webp";
 
 function isImageKey(key: string): boolean {
 	const ext = key.split(".").pop()?.toLowerCase() ?? "";
-	return IMAGE_EXTENSIONS.has(ext);
+	return IMAGE_EXTENSIONS.has(ext) && !key.startsWith(THUMBNAIL_PREFIX);
 }
 
 function contentTypeFromKey(key: string): string {
@@ -142,6 +146,12 @@ function contentTypeFromKey(key: string): string {
 		bmp: "image/bmp",
 	};
 	return map[ext] ?? "application/octet-stream";
+}
+
+function thumbnailKeyFor(originalKey: string): string {
+	// e.g. "sunset-001.jpg" → "_thumbnails/sunset-001.webp"
+	const baseName = originalKey.replace(/\.[^.]+$/, "");
+	return `${THUMBNAIL_PREFIX}${baseName}.${THUMBNAIL_FORMAT}`;
 }
 
 async function handleGalleryList(env: Env): Promise<Response> {
@@ -173,42 +183,56 @@ async function handleGalleryList(env: Env): Promise<Response> {
 	});
 }
 
-async function handleGalleryImage(key: string, url: URL, env: Env): Promise<Response> {
-	const object = await env.GALLERY_BUCKET.get(key);
-	if (!object) {
+async function handleGalleryThumbnail(key: string, env: Env): Promise<Response> {
+	const thumbKey = thumbnailKeyFor(key);
+
+	const cached = await env.GALLERY_BUCKET.get(thumbKey);
+	if (cached) {
+		return new Response(cached.body, {
+			headers: {
+				"Content-Type": "image/webp",
+				"Cache-Control": "public, max-age=2592000, immutable",
+			},
+		});
+	}
+
+	if (!env.IMAGES) {
+		return new Response("Image transformation service unavailable", { status: 503 });
+	}
+
+	const original = await env.GALLERY_BUCKET.get(key);
+	if (!original) {
 		return new Response("Not found", { status: 404 });
 	}
 
-	const width = parseInt(url.searchParams.get("w") || "0", 10);
-	const quality = parseInt(url.searchParams.get("q") || "85", 10);
-	const format = url.searchParams.get("fmt") || "webp";
+	try {
+		const result = await env.IMAGES
+			.input(original.body)
+			.transform({ width: THUMBNAIL_WIDTH })
+			.output({ format: THUMBNAIL_FORMAT, quality: THUMBNAIL_QUALITY });
 
-	// Resize via Cloudflare Images binding when width is requested
-	if (width > 0 && env.IMAGES) {
-		try {
-			const result = await env.IMAGES
-				.input(object.body)
-				.transform({ width })
-				.output({ format, quality });
-			const resized = result.response();
-			return new Response(resized.body, {
-				headers: {
-					"Content-Type": `image/${format}`,
-					"Cache-Control": "public, max-age=2592000, immutable",
-				},
-			});
-		} catch {
-			// If transformation fails (e.g. local dev), re-fetch the original
-			// since the stream was consumed by the failed transform
-			const fallback = await env.GALLERY_BUCKET.get(key);
-			if (!fallback) return new Response("Not found", { status: 404 });
-			return new Response(fallback.body, {
-				headers: {
-					"Content-Type": fallback.httpMetadata?.contentType || contentTypeFromKey(key),
-					"Cache-Control": "public, max-age=2592000, immutable",
-				},
-			});
-		}
+		const resized = result.response();
+		const thumbnailBytes = await resized.arrayBuffer();
+
+		await env.GALLERY_BUCKET.put(thumbKey, thumbnailBytes, {
+			httpMetadata: { contentType: "image/webp" },
+		});
+
+		return new Response(thumbnailBytes, {
+			headers: {
+				"Content-Type": "image/webp",
+				"Cache-Control": "public, max-age=2592000, immutable",
+			},
+		});
+	} catch {
+		return new Response("Thumbnail generation failed", { status: 503 });
+	}
+}
+
+async function handleGalleryImage(key: string, env: Env): Promise<Response> {
+	const object = await env.GALLERY_BUCKET.get(key);
+	if (!object) {
+		return new Response("Not found", { status: 404 });
 	}
 
 	return new Response(object.body, {
@@ -219,14 +243,9 @@ async function handleGalleryImage(key: string, url: URL, env: Env): Promise<Resp
 	});
 }
 
-// ---------- Main fetch handler ----------
-
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
-		// console.log("[SERVER WORKER DEBUG] url:", request.url);
-		// console.log("[SERVER WORKER DEBUG] process.env:", typeof process !== "undefined" ? JSON.stringify(process.env) : "no process");
-		// console.log("[SERVER WORKER DEBUG] env keys:", Object.keys(env));
 
 		const isRsc = request.headers.get("RSC") === "1" || url.searchParams.has("_rsc");
 
@@ -246,9 +265,14 @@ export default {
 			return handleGalleryList(env);
 		}
 
+		if (url.pathname.startsWith("/api/gallery/thumbnail/")) {
+			const key = decodeURIComponent(url.pathname.replace("/api/gallery/thumbnail/", ""));
+			return handleGalleryThumbnail(key, env);
+		}
+
 		if (url.pathname.startsWith("/api/gallery/image/")) {
 			const key = decodeURIComponent(url.pathname.replace("/api/gallery/image/", ""));
-			return handleGalleryImage(key, url, env);
+			return handleGalleryImage(key, env);
 		}
 
 		const response = await handler.fetch(request);
