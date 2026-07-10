@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import type { GalleryImage } from '@/types/gallery';
 
@@ -88,7 +89,12 @@ function GalleryLightbox({
 			})
 		: null;
 
-	return (
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
+
+	if (!mounted) return null;
+
+	return createPortal(
 		<motion.div
 			ref={backdropRef}
 			initial={{ opacity: 0 }}
@@ -193,8 +199,10 @@ function GalleryLightbox({
 					</div>
 				)}
 			</motion.div>
-		</motion.div>
+		</motion.div>,
+		document.body
 	);
+
 }
 
 export default GalleryLightbox;

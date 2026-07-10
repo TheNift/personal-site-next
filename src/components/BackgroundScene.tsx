@@ -34,9 +34,8 @@ import { useLanguage } from '@contexts/LanguageContext';
 import { bayer8x8Shader } from '@components/shaders';
 import { ShaderLayer } from './ShaderLayer';
 import { preloadThreeJSAssets } from '@/utils/sceneLoader';
+import GalleryView from '@views/GalleryView';
 
-// Exported so LoadingHandler can call it from within this lazy chunk,
-// keeping all @react-three/drei references inside BackgroundScene's bundle.
 export const preloadAssets = (onProgress: (progress: number) => void) =>
 	preloadThreeJSAssets(useGLTF.preload, onProgress);
 
@@ -186,7 +185,7 @@ const BackgroundScene = () => {
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 	const [monitorHovered, setMonitorHovered] = useState(false);
 
-	const { cameraPosition, isAssetsLoading } = useBackground();
+	const { cameraPosition, isAssetsLoading, isCameraMoving } = useBackground();
 	const { strings } = useLanguage();
 	const router = useRouter();
 	const navigate = useCallback(
@@ -372,53 +371,83 @@ const BackgroundScene = () => {
 						receiveShadow={true}
 						castShadow={true}
 						suspense={true}
-					/>
-					{/* Monitor hitbox for Gallery navigation — Home screen only */}
-					<group>
-						<mesh
-							position={[-3.48, 4.35, 3.95]}
-							onPointerOver={(e) => {
-								e.stopPropagation();
-								if (cameraPosition === 0 && location.pathname === '/') {
-									setMonitorHovered(true);
-									document.body.style.cursor = 'pointer';
-								}
-							}}
-							onPointerOut={() => {
-								setMonitorHovered(false);
-								document.body.style.cursor = 'auto';
-							}}
-							onClick={(e) => {
-								e.stopPropagation();
-								if (cameraPosition === 0 && location.pathname === '/') {
-									navigate('/gallery');
-								}
-							}}
-						>
-							<boxGeometry args={[2.2, 1.4, 0.1]} />
-							<meshBasicMaterial visible={false} />
-						</mesh>
-						<group position={[-3.48, 5.3, 3.95]}>
-							<Html>
-								<div
-									className='pointer-events-none bg-black/80 text-white px-2 py-1 rounded text-sm whitespace-nowrap'
-									style={{
-										opacity: monitorHovered ? 1 : 0,
-										transition: 'opacity 150ms ease',
-										transform: 'translateX(-50%)',
-									}}
-								>
-									Gallery
-								</div>
-							</Html>
-						</group>
-					</group>
-					<group
-						position={[-3.48, 4.35, 3.95]}
-						rotation={[0.06 * Math.PI, 1 * Math.PI, 0]}
 					>
-						<SpinningMaxwell />
-					</group>
+						{/* Screen Content and Hitbox */}
+						<group position={[6.25, 37.5, 0.5]}>
+							{/* 1. Yaw to face outward from the monitor */}
+							<group rotation={[0, 0.5 * Math.PI, 0]}>
+								{/* 2. Pitch to match the monitor's physical backward tilt */}
+								<group rotation={[-0.06 * Math.PI, 0, 0]}>
+									
+									{/* Hitbox */}
+									<mesh
+										onPointerOver={(e) => {
+											e.stopPropagation();
+											if (cameraPosition === 0 && location.pathname === '/') {
+												setMonitorHovered(true);
+												document.body.style.cursor = 'pointer';
+											}
+										}}
+										onPointerOut={() => {
+											setMonitorHovered(false);
+											document.body.style.cursor = 'auto';
+										}}
+										onClick={(e) => {
+											e.stopPropagation();
+											if (cameraPosition === 0 && location.pathname === '/') {
+												navigate('/gallery');
+											}
+										}}
+									>
+										<boxGeometry args={[55, 35, 2.5]} />
+										<meshBasicMaterial visible={false} />
+									</mesh>
+
+									{/* Gallery Tooltip */}
+									<group position={[0, 23.75, 0]}>
+										<Html>
+											<div
+												className='pointer-events-none bg-black/80 text-white px-2 py-1 rounded text-sm whitespace-nowrap'
+												style={{
+													opacity: monitorHovered ? 1 : 0,
+													transition: 'opacity 150ms ease',
+													transform: 'translateX(-50%)',
+												}}
+											>
+												Gallery
+											</div>
+										</Html>
+									</group>
+
+									{/* Screen Content */}
+									<SpinningMaxwell />
+									{location.pathname === '/gallery' && (
+										<Html
+											transform
+											position={[3, -1.5, 0.01]}
+											scale={(92 / 1280) / 0.04}
+										>
+											<div
+												style={{
+													opacity: isCameraMoving ? 0 : 1,
+													transition: 'opacity 200ms ease',
+													pointerEvents: isCameraMoving ? 'none' : 'auto',
+												}}
+											>
+												<div 
+													className='bg-site-bg overflow-hidden relative'
+													style={{ width: '1280px', height: '720px' }}
+												>
+													<GalleryView />
+												</div>
+											</div>
+										</Html>
+									)}
+
+								</group>
+							</group>
+						</group>
+					</Monitor>
 					<Keyboard
 						ref={modelRefs.keyboard}
 						position={[-2.9, 2.85, 2.9]}
