@@ -83,9 +83,9 @@ function GalleryView() {
 					initial={{ opacity: 0, y: -10 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.4, delay: 0.1 }}
-					className='sticky top-0 z-20 w-full flex justify-center pt-[32px] md:pt-0 pb-4 md:pb-6 bg-black/60 md:bg-transparent backdrop-blur-md md:backdrop-blur-none mb-2 md:mb-0'
+					className='sticky md:static top-0 z-20 w-full flex items-center justify-center py-5 md:pt-0 md:pb-6 bg-black/60 md:bg-transparent backdrop-blur-md md:backdrop-blur-none mb-2 md:mb-0'
 				>
-					<h1 className='text-yorha/80 text-sm tracking-[0.3em] uppercase font-light font-jetbrains-mono'>
+					<h1 className='text-yorha/80 text-sm tracking-[0.3em] uppercase font-light font-jetbrains-mono m-0'>
 						Gallery
 					</h1>
 				</motion.div>
