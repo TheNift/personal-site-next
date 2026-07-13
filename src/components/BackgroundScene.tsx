@@ -9,7 +9,7 @@ import {
 	Suspense,
 } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import { useGLTF, Html } from '@react-three/drei';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Vector3, Color } from 'three';
@@ -34,9 +34,8 @@ import { useLanguage } from '@contexts/LanguageContext';
 import { bayer8x8Shader } from '@components/shaders';
 import { ShaderLayer } from './ShaderLayer';
 import { preloadThreeJSAssets } from '@/utils/sceneLoader';
+import GalleryView from '@views/GalleryView';
 
-// Exported so LoadingHandler can call it from within this lazy chunk,
-// keeping all @react-three/drei references inside BackgroundScene's bundle.
 export const preloadAssets = (onProgress: (progress: number) => void) =>
 	preloadThreeJSAssets(useGLTF.preload, onProgress);
 
@@ -184,8 +183,17 @@ function SceneReadyDetector({ onReady }: { onReady: () => void }) {
 const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
+	const [monitorHovered, setMonitorHovered] = useState(false);
+	const [isMobile, setIsMobile] = useState(false);
 
-	const { cameraPosition, isAssetsLoading } = useBackground();
+	useEffect(() => {
+		const checkMobile = () => setIsMobile(window.innerWidth < 768);
+		checkMobile();
+		window.addEventListener('resize', checkMobile);
+		return () => window.removeEventListener('resize', checkMobile);
+	}, []);
+
+	const { cameraPosition, isAssetsLoading, isCameraMoving } = useBackground();
 	const { strings } = useLanguage();
 	const router = useRouter();
 	const navigate = useCallback(
@@ -198,6 +206,7 @@ const BackgroundScene = () => {
 		router.prefetch('/experience');
 		router.prefetch('/portfolio');
 		router.prefetch('/contact');
+		router.prefetch('/gallery');
 	}, [router]);
 	const pathname = usePathname();
 	const location = { pathname: pathname || '/' };
@@ -214,6 +223,21 @@ const BackgroundScene = () => {
 			setIsFullyLoaded(false);
 		}
 	}, [isAssetsLoading, isSceneReady]);
+
+	useEffect(() => {
+		if (location.pathname === '/gallery') {
+			const triggerResize = () => {
+				window.dispatchEvent(new Event('resize'));
+			};
+			const timer1 = setTimeout(triggerResize, 100);
+			const timer2 = setTimeout(triggerResize, 700);
+
+			return () => {
+				clearTimeout(timer1);
+				clearTimeout(timer2);
+			};
+		}
+	}, [location.pathname]);
 
 	const modelRefs: ModelRefs = {
 		desk: useRef<ModelHandle>(null!),
@@ -275,8 +299,15 @@ const BackgroundScene = () => {
 			{
 				position: new Vector3(-1.1, 3.4, 3),
 				lookAt:
-					modelRefs.phone.current?.location.clone() ||
+				modelRefs.phone.current?.location.clone() ||
 					new Vector3(0, 0, 0),
+			},
+			// Gallery - zoomed into monitor
+			{
+				position: new Vector3(-3.48, 4.7, 2.5),
+				lookAt: new Vector3(-3.48, 4.35, 4.2),
+				mobilePosition: new Vector3(-3.48, 4.35, 2.5),
+				mobileLookAt: new Vector3(-3.48, 4.35, 4.2),
 			},
 		],
 		[isAssetsLoading, isFullyLoaded],
@@ -363,13 +394,83 @@ const BackgroundScene = () => {
 						receiveShadow={true}
 						castShadow={true}
 						suspense={true}
-					/>
-					<group
-						position={[-3.48, 4.35, 3.95]}
-						rotation={[0.06 * Math.PI, 1 * Math.PI, 0]}
 					>
-						<SpinningMaxwell />
-					</group>
+						{/* Screen Content and Hitbox */}
+						<group position={[6.25, 37.5, 0.5]}>
+							{/* 1. Yaw to face outward from the monitor */}
+							<group rotation={[0, 0.5 * Math.PI, 0]}>
+								{/* 2. Pitch to match the monitor's physical backward tilt */}
+								<group rotation={[-0.06 * Math.PI, 0, 0]}>
+									
+									{/* Hitbox */}
+									<mesh
+										onPointerOver={(e) => {
+											e.stopPropagation();
+											if (cameraPosition === 0 && location.pathname === '/') {
+												setMonitorHovered(true);
+												document.body.style.cursor = 'pointer';
+											}
+										}}
+										onPointerOut={() => {
+											setMonitorHovered(false);
+											document.body.style.cursor = 'auto';
+										}}
+										onClick={(e) => {
+											e.stopPropagation();
+											if (cameraPosition === 0 && location.pathname === '/') {
+												navigate('/gallery');
+											}
+										}}
+									>
+										<boxGeometry args={[55, 35, 2.5]} />
+										<meshBasicMaterial visible={false} />
+									</mesh>
+
+									{/* Gallery Tooltip */}
+									<group position={[0, 23.75, 0]}>
+										<Html>
+											<div
+												className='pointer-events-none bg-black/80 text-white px-2 py-1 rounded text-sm whitespace-nowrap'
+												style={{
+													opacity: monitorHovered ? 1 : 0,
+													transition: 'opacity 150ms ease',
+													transform: 'translateX(-50%)',
+												}}
+											>
+												Gallery
+											</div>
+										</Html>
+									</group>
+
+									{/* Screen Content */}
+									<SpinningMaxwell />
+									{location.pathname === '/gallery' && !isMobile && (
+										<Html
+											transform
+											position={[0.75, -0.5, 0.01]}
+											scale={(90 / 1280) / 0.04}
+										>
+											<div
+												style={{
+													opacity: isCameraMoving ? 0 : 1,
+													transition: 'opacity 200ms ease',
+													pointerEvents: isCameraMoving ? 'none' : 'auto',
+												}}
+											>
+												<div 
+													className='bg-site-bg overflow-hidden relative'
+													style={{ width: '1280px', height: '720px' }}
+												>
+													<GalleryView />
+												</div>
+											</div>
+										</Html>
+									)}
+
+								</group>
+							</group>
+						</group>
+					</Monitor>
 					<Keyboard
 						ref={modelRefs.keyboard}
 						position={[-2.9, 2.85, 2.9]}

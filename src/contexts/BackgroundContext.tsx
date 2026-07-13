@@ -25,7 +25,7 @@ interface BackgroundContextType {
 	setIsCameraMoving: (index: boolean) => void;
 }
 
-const BackgroundContext = createContext<BackgroundContextType | undefined>(
+export const BackgroundContext = createContext<BackgroundContextType | undefined>(
 	undefined,
 );
 
@@ -37,18 +37,11 @@ let cachedAssetsLoaded = false;
 export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	children,
 }) => {
-	// Camera/page state: module cache preserves across remounts.
 	const [cameraPosition, setCameraPositionRaw] = useState(() => cachedCameraPosition);
 	const [currentPageIndex, setCurrentPageIndexRaw] = useState(() => cachedPageIndex);
 
-	// CRITICAL: Always initialize as true to match SSR output.
-	// The actual value is set in useLayoutEffect (before browser paint) to
-	// avoid both hydration mismatch AND visual flash.
 	const [isAssetsLoading, setIsAssetsLoadingRaw] = useState(true);
 
-	// useLayoutEffect runs after React commits DOM but BEFORE browser paints.
-	// This means: hydration sees true (matches SSR) → layout effect fires →
-	// sets to false → browser paints with false. No hydration mismatch, no flash.
 	useLayoutEffect(() => {
 		if (cachedAssetsLoaded || sessionStorage.getItem('assets-loaded') === 'true') {
 			cachedAssetsLoaded = true;
@@ -80,6 +73,13 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	const pathname = usePathname() || '/';
 
 	const updatePageIndex = useCallback(() => {
+		// Gallery has its own camera position (monitor zoom) outside the nav
+		if (pathname === '/gallery') {
+			setCurrentPageIndex(5);
+			setCameraPosition(5);
+			return;
+		}
+
 		const navItems = strings.ui?.nav;
 		if (!navItems?.length) return;
 		let matchedIndex = 0;
@@ -129,9 +129,18 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 export const useBackground = (): BackgroundContextType => {
 	const context = useContext(BackgroundContext);
 	if (context === undefined) {
-		throw new Error(
-			'useBackground must be used within a BackgroundProvider',
-		);
+		return {
+			cameraPosition: 0,
+			setCameraPosition: () => {},
+			currentPageIndex: 0,
+			setCurrentPageIndex: () => {},
+			isAssetsLoading: false,
+			setIsAssetsLoading: () => {},
+			loadingProgress: 100,
+			setLoadingProgress: () => {},
+			isCameraMoving: false,
+			setIsCameraMoving: () => {},
+		};
 	}
 	return context;
 };

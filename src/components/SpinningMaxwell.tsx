@@ -40,7 +40,7 @@ export const SpinningMaxwell = memo(() => {
 	const { strings } = useLanguage();
 	return (
 		<mesh>
-			<planeGeometry args={[2.25, 1.26]} />
+			<planeGeometry args={[54.25, 30.5]} />
 			<meshBasicMaterial>
 				<RenderTexture attach="map" anisotropy={16}>
 					<PerspectiveCamera

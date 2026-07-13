@@ -1,4 +1,4 @@
-name = "personal-site-next"
+name = "personal-site-next-testing"
 main = "./worker/index.ts"
 compatibility_date = "2026-02-16"
 compatibility_flags = ["nodejs_compat"]
@@ -6,3 +6,10 @@ compatibility_flags = ["nodejs_compat"]
 [assets]
 binding = "ASSETS"
 not_found_handling = "none"
+
+[[r2_buckets]]
+binding = "GALLERY_BUCKET"
+bucket_name = "gallery-photos"
+
+[images]
+binding = "IMAGES"
