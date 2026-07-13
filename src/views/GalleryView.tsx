@@ -71,7 +71,9 @@ function GalleryView() {
 		});
 	}, []);
 
-	const allImagesLoaded = images.length > 0 && loadedImageKeys.size === images.length;
+	const INITIAL_LOAD_COUNT = Math.min(images.length, 8);
+	const initialImagesLoaded = images.length > 0 && 
+		images.slice(0, INITIAL_LOAD_COUNT).every(img => loadedImageKeys.has(img.key));
 
 	return (
 		<Page className='relative flex flex-col items-center justify-start pointer-events-auto overflow-hidden'>
@@ -87,7 +89,7 @@ function GalleryView() {
 				</motion.h1>
 
 				{/* Loading skeleton */}
-				{(loading || (!allImagesLoaded && images.length > 0)) && (
+				{(loading || (!initialImagesLoaded && images.length > 0)) && (
 					<div className='gallery-grid w-full max-w-[1400px] px-4 md:px-8'>
 						{Array.from({ length: 8 }).map((_, i) => (
 							<div
@@ -124,7 +126,7 @@ function GalleryView() {
 				{/* Image grid */}
 				{!loading && images.length > 0 && (
 					<motion.div
-						className={`gallery-grid w-full lg:px-[200px] px-4 md:px-8 pb-8 ${allImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
+						className={`gallery-grid w-full lg:px-[200px] px-4 md:px-8 pb-8 ${initialImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
 						variants={{
 							hidden: {},
 							visible: {
@@ -132,7 +134,7 @@ function GalleryView() {
 							}
 						}}
 						initial='hidden'
-						animate={allImagesLoaded ? 'visible' : 'hidden'}
+						animate={initialImagesLoaded ? 'visible' : 'hidden'}
 					>
 						{images.map((image, index) => (
 							<motion.button
@@ -152,7 +154,7 @@ function GalleryView() {
 									className='gallery-thumbnail-img'
 									onLoad={() => handleImageLoad(image.key)}
 									onError={() => handleImageLoad(image.key)}
-									loading={index < 4 ? 'eager' : 'lazy'}
+									loading={index < 8 ? 'eager' : 'lazy'}
 									fetchPriority={index === 0 ? 'high' : 'auto'}
 									draggable={false}
 								/>
