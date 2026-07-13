@@ -1,4 +1,4 @@
-name = "personal-site-next-testing"
+name = "personal-site-next"
 main = "./worker/index.ts"
 compatibility_date = "2026-02-16"
 compatibility_flags = ["nodejs_compat"]
