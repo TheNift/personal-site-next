@@ -184,6 +184,14 @@ const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 	const [monitorHovered, setMonitorHovered] = useState(false);
+	const [isMobile, setIsMobile] = useState(false);
+
+	useEffect(() => {
+		const checkMobile = () => setIsMobile(window.innerWidth < 768);
+		checkMobile();
+		window.addEventListener('resize', checkMobile);
+		return () => window.removeEventListener('resize', checkMobile);
+	}, []);
 
 	const { cameraPosition, isAssetsLoading, isCameraMoving } = useBackground();
 	const { strings } = useLanguage();
@@ -436,7 +444,7 @@ const BackgroundScene = () => {
 
 									{/* Screen Content */}
 									<SpinningMaxwell />
-									{location.pathname === '/gallery' && (
+									{location.pathname === '/gallery' && !isMobile && (
 										<Html
 											transform
 											position={[0.75, -0.5, 0.01]}
