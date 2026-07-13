@@ -185,6 +185,7 @@ const BackgroundScene = () => {
 	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 	const [monitorHovered, setMonitorHovered] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
+	const [isGalleryVisible, setIsGalleryVisible] = useState(false);
 
 	useEffect(() => {
 		const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -230,12 +231,17 @@ const BackgroundScene = () => {
 				window.dispatchEvent(new Event('resize'));
 			};
 			const timer1 = setTimeout(triggerResize, 100);
-			const timer2 = setTimeout(triggerResize, 700);
+			const timer2 = setTimeout(() => {
+				triggerResize();
+				setIsGalleryVisible(true);
+			}, 600);
 
 			return () => {
 				clearTimeout(timer1);
 				clearTimeout(timer2);
 			};
+		} else {
+			setIsGalleryVisible(false);
 		}
 	}, [location.pathname]);
 
@@ -447,14 +453,14 @@ const BackgroundScene = () => {
 									{location.pathname === '/gallery' && !isMobile && (
 										<Html
 											transform
-											position={[0.75, -0.5, 0.01]}
-											scale={(90 / 1280) / 0.04}
+											position={[0.74, -0.40, 0.0]}
+											scale={(91 / 1280) / 0.04}
 										>
 											<div
 												style={{
-													opacity: isCameraMoving ? 0 : 1,
-													transition: 'opacity 200ms ease',
-													pointerEvents: isCameraMoving ? 'none' : 'auto',
+													opacity: isGalleryVisible && cameraPosition === 5 ? 1 : 0,
+													transition: 'opacity 300ms ease',
+													pointerEvents: isGalleryVisible && cameraPosition === 5 ? 'auto' : 'none',
 												}}
 											>
 												<div 
