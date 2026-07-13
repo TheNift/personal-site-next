@@ -77,16 +77,18 @@ function GalleryView() {
 
 	return (
 		<Page className='relative flex flex-col items-center justify-start pointer-events-auto overflow-hidden'>
-			<div className='w-full h-full flex flex-col items-center pt-[32px] md:pt-[24px] overflow-y-auto hidden-scrollbar'>
+			<div className='w-full h-full flex flex-col items-center pt-0 md:pt-[24px] overflow-y-auto hidden-scrollbar'>
 				{/* Header */}
-				<motion.h1
+				<motion.div
 					initial={{ opacity: 0, y: -10 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.4, delay: 0.1 }}
-					className='text-yorha/80 text-sm tracking-[0.3em] uppercase font-light mb-6 font-jetbrains-mono'
+					className='sticky top-0 z-20 w-full flex justify-center pt-[32px] md:pt-0 pb-4 md:pb-6 bg-black/60 md:bg-transparent backdrop-blur-md md:backdrop-blur-none mb-2 md:mb-0'
 				>
-					Gallery
-				</motion.h1>
+					<h1 className='text-yorha/80 text-sm tracking-[0.3em] uppercase font-light font-jetbrains-mono'>
+						Gallery
+					</h1>
+				</motion.div>
 
 				{/* Loading skeleton */}
 				{(loading || (!initialImagesLoaded && images.length > 0)) && (
