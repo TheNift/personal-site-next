@@ -6,22 +6,32 @@ const english = {
 			{
 				text: 'Home',
 				to: '/',
+				icon: 'home',
 			},
 			{
 				text: 'About',
 				to: '/about',
+				icon: 'user',
 			},
 			{
 				text: 'Experience',
 				to: '/experience',
+				icon: 'briefcase',
 			},
 			{
 				text: 'Portfolio',
 				to: '/portfolio',
+				icon: 'folder-open',
 			},
 			{
 				text: 'Contact',
 				to: '/contact',
+				icon: 'mail',
+			},
+			{
+				text: 'Gallery',
+				to: '/gallery',
+				icon: 'images',
 			},
 		],
 		loading: {
