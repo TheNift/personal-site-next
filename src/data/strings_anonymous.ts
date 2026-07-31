@@ -33,6 +33,11 @@ const english = {
 				to: '/gallery',
 				icon: 'images',
 			},
+			{
+				text: 'Game',
+				to: '/game',
+				icon: 'gamepad',
+			}
 		],
 		loading: {
 			title: 'Welcome!',
@@ -239,6 +244,11 @@ const vietnamese = {
 				text: 'Liên hệ',
 				to: '/contact',
 			},
+			{
+				text: 'Game',
+				to: '/game',
+				icon: 'gamepad',
+			}
 		],
 		loading: {
 			title: 'Chào mừng!',

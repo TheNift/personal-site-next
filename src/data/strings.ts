@@ -245,6 +245,11 @@ const vietnamese = {
 				text: 'Liên hệ',
 				to: '/contact',
 			},
+			{
+				text: 'Game',
+				to: '/game',
+				icon: 'gamepad',
+			}
         ],
 		loading: {
 			title: 'Chào mừng!',
