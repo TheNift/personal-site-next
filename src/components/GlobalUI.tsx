@@ -66,6 +66,7 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
 	const isGallery = pathname === '/gallery';
+	const isGame = pathname.startsWith('/game');
 	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
 
 	return (
@@ -75,22 +76,26 @@ function GlobalUI({ children }: { children: ReactNode }) {
 					isInteractive ? 'pointer-events-none' : ''
 				}`}
 			>
-				<NavUI />
-				<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
-					<ToggleButtonsContainer />
-				</div>
+				{!isGame && <NavUI />}
+				{!isGame && (
+					<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
+						<ToggleButtonsContainer />
+					</div>
+				)}
 				<AnimatedOutlet>{children}</AnimatedOutlet>
 			</div>
-			<LoadingModal />
-			<div className='absolute inset-0 z-0 bg-site-bg'>
-				{mounted && hasAcceleration ?
-					<Suspense
-						fallback={<div className='w-full h-full bg-inherit' />}
-					>
-						<BackgroundScene />
-					</Suspense>
-				:	<div className='w-full h-full bg-inherit' />}
-			</div>
+			{!isGame && <LoadingModal />}
+			{!isGame && (
+				<div className='absolute inset-0 z-0 bg-site-bg'>
+					{mounted && hasAcceleration ?
+						<Suspense
+							fallback={<div className='w-full h-full bg-inherit' />}
+						>
+							<BackgroundScene />
+						</Suspense>
+					:	<div className='w-full h-full bg-inherit' />}
+				</div>
+			)}
 		</div>
 	);
 }

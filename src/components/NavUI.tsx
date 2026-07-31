@@ -16,7 +16,7 @@ import ScrambleText from '@components/ScrambleText';
 import { useBackground } from '@contexts/BackgroundContext';
 import { useUI } from '@/contexts/UIContext';
 import { useRouter } from 'next/navigation';
-import { Home, User, Briefcase, FolderOpen, Mail, Images } from 'lucide-react';
+import { Home, User, Briefcase, FolderOpen, Mail, Images, Gamepad } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
 
@@ -28,6 +28,7 @@ const ICON_MAP: Record<string, ComponentType<LucideProps>> = {
 	'folder-open': FolderOpen,
 	mail: Mail,
 	images: Images,
+	gamepad: Gamepad,
 };
 
 // ---------- Constants ----------

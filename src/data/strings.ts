@@ -33,6 +33,11 @@ const english = {
 				to: '/gallery',
 				icon: 'images',
 			},
+			{
+				text: 'Game',
+				to: '/game',
+				icon: 'gamepad',
+			}
         ],
 		loading: {
 			title: 'Welcome!',

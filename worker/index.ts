@@ -19,7 +19,7 @@ const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> 
 		pattern: "/*",
 		headers: {
 			"Cache-Control": "public, max-age=604800",
-			"X-Frame-Options": "DENY",
+			"X-Frame-Options": "SAMEORIGIN",
 			"X-Content-Type-Options": "nosniff",
 			"Referrer-Policy": "strict-origin-when-cross-origin",
 		},
