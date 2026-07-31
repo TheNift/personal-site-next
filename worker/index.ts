@@ -12,6 +12,7 @@ interface Env {
 		};
 	};
 	GALLERY_BUCKET: R2Bucket;
+	GAME_BUCKET: R2Bucket;
 }
 
 const HEADER_RULES: Array<{ pattern: string; headers: Record<string, string> }> = [
@@ -321,6 +322,40 @@ export default {
 				},
 			});
 			return applyHeaderRules(response, url.pathname, isRsc);
+		}
+
+		// Game API routes (R2 Proxy)
+		if (url.pathname.startsWith("/game/") && url.pathname !== "/game") {
+			const key = decodeURIComponent(url.pathname.replace("/game/", ""));
+			if (!key) return new Response("Not found", { status: 404 });
+			
+			const object = await env.GAME_BUCKET.get(key);
+			if (!object) {
+				return new Response("Not found", { status: 404 });
+			}
+
+			let contentType = object.httpMetadata?.contentType || "application/octet-stream";
+			if (!object.httpMetadata?.contentType) {
+				const ext = key.split('.').pop()?.toLowerCase() || '';
+				const contentTypes: Record<string, string> = {
+					'html': 'text/html',
+					'js': 'application/javascript',
+					'wasm': 'application/wasm',
+					'pck': 'application/octet-stream',
+					'png': 'image/png'
+				};
+				if (contentTypes[ext]) {
+					contentType = contentTypes[ext];
+				}
+			}
+
+			return new Response(object.body, {
+				headers: {
+					"Content-Type": contentType,
+					"Cache-Control": "public, max-age=86400",
+					"X-Frame-Options": "SAMEORIGIN"
+				}
+			});
 		}
 
 		// Gallery API routes

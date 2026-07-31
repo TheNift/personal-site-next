@@ -13,3 +13,7 @@ bucket_name = "gallery-photos"
 
 [images]
 binding = "IMAGES"
+
+[[r2_buckets]]
+binding = "GAME_BUCKET"
+bucket_name = "mmo-files"
