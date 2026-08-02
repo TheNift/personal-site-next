@@ -329,9 +329,25 @@ export default {
 			const key = decodeURIComponent(url.pathname.replace("/game/", ""));
 			if (!key) return new Response("Not found", { status: 404 });
 			
-			const object = await env.GAME_BUCKET.get(key);
+			const isVersionJson = key === "version.json";
+
+			const object = isVersionJson
+				? await env.GAME_BUCKET.get(key)
+				: await env.GAME_BUCKET.get(key, { onlyIf: request.headers });
+
 			if (!object) {
 				return new Response("Not found", { status: 404 });
+			}
+
+			if (!("body" in object)) {
+				return new Response(null, {
+					status: 304,
+					headers: {
+						"ETag": object.httpEtag,
+						"Cache-Control": "no-cache, must-revalidate",
+						"X-Frame-Options": "SAMEORIGIN",
+					},
+				});
 			}
 
 			let contentType = object.httpMetadata?.contentType || "application/octet-stream";
@@ -342,19 +358,30 @@ export default {
 					'js': 'application/javascript',
 					'wasm': 'application/wasm',
 					'pck': 'application/octet-stream',
-					'png': 'image/png'
+					'png': 'image/png',
+					'json': 'application/json',
 				};
 				if (contentTypes[ext]) {
 					contentType = contentTypes[ext];
 				}
 			}
 
-			return new Response(object.body, {
-				headers: {
-					"Content-Type": contentType,
-					"Cache-Control": "public, max-age=86400",
-					"X-Frame-Options": "SAMEORIGIN"
-				}
+			const cacheControl = isVersionJson
+				? "no-store, no-cache, must-revalidate, max-age=0"
+				: "no-cache, must-revalidate";
+
+			const responseHeaders: Record<string, string> = {
+				"Content-Type": contentType,
+				"Cache-Control": cacheControl,
+				"X-Frame-Options": "SAMEORIGIN",
+			};
+
+			if (object.httpEtag) {
+				responseHeaders["ETag"] = object.httpEtag;
+			}
+
+			return new Response(object.body as BodyInit, {
+				headers: responseHeaders,
 			});
 		}
 
