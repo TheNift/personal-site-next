@@ -82,11 +82,36 @@ function GalleryLightbox({
 	}, [currentIndex, images]);
 
 	const formattedDate = image.date
-		? new Date(image.date).toLocaleDateString('en-US', {
-				year: 'numeric',
-				month: 'long',
-				day: 'numeric',
-			})
+		? (() => {
+				try {
+					if (image.date.includes('-')) {
+						const parts = image.date.split('-');
+						if (parts.length === 3) {
+							const year = parseInt(parts[0], 10);
+							const month = parseInt(parts[1], 10) - 1;
+							const day = parseInt(parts[2], 10);
+							const d = new Date(year, month, day);
+							if (!isNaN(d.getTime())) {
+								return d.toLocaleDateString('en-US', {
+									year: 'numeric',
+									month: 'short',
+									day: 'numeric',
+								});
+							}
+						}
+					}
+					const d = new Date(image.date);
+					return !isNaN(d.getTime())
+						? d.toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+						  })
+						: image.date;
+				} catch {
+					return image.date;
+				}
+		  })()
 		: null;
 
 	const [mounted, setMounted] = useState(false);
@@ -183,19 +208,54 @@ function GalleryLightbox({
 				</div>
 
 				{/* Metadata below the photo on the white framing */}
-				{(image.title || image.description || formattedDate) && (
+				{(image.title || image.description || image.camera_name || image.location || image.date || image.focal_length || image.aperture || image.resolution) && (
 					<div className='lightbox-meta'>
 						{image.title && (
 							<h2 className='lightbox-meta-title'>{image.title}</h2>
-						)}
-						{formattedDate && (
-							<p className='lightbox-meta-date'>{formattedDate}</p>
 						)}
 						{image.description && (
 							<p className='lightbox-meta-description'>
 								{image.description}
 							</p>
 						)}
+						<div className='lightbox-meta-fields'>
+							{image.camera_name && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Camera</span>
+									<span className='lightbox-meta-field-value'>{image.camera_name}</span>
+								</div>
+							)}
+							{image.location && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Location</span>
+									<span className='lightbox-meta-field-value'>{image.location}</span>
+								</div>
+							)}
+							{image.date && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Date</span>
+									<span className='lightbox-meta-field-value'>{formattedDate || image.date}</span>
+								</div>
+							)}
+							{image.focal_length && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Focal Length</span>
+									<span className='lightbox-meta-field-value'>{image.focal_length}</span>
+								</div>
+							)}
+							{image.aperture && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Aperture</span>
+									<span className='lightbox-meta-field-value'>{image.aperture}</span>
+								</div>
+							)}
+							{image.resolution && (
+								<div className='lightbox-meta-field'>
+									<span className='lightbox-meta-field-label'>Resolution</span>
+									<span className='lightbox-meta-field-value'>{image.resolution}</span>
+								</div>
+							)}
+						</div>
 					</div>
 				)}
 			</motion.div>

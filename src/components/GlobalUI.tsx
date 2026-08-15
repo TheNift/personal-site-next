@@ -67,7 +67,9 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isContact = pathname === '/contact';
 	const isGallery = pathname === '/gallery';
 	const isGame = pathname.startsWith('/game');
+	const isAdmin = pathname.startsWith('/admin');
 	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
+	const hideGlobalNav = isGame || isAdmin;
 
 	return (
 		<div className='h-screen w-screen relative bg-site-bg'>
@@ -76,16 +78,16 @@ function GlobalUI({ children }: { children: ReactNode }) {
 					isInteractive ? 'pointer-events-none' : ''
 				}`}
 			>
-				{!isGame && <NavUI />}
-				{!isGame && (
+				{!hideGlobalNav && <NavUI />}
+				{!hideGlobalNav && (
 					<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
 						<ToggleButtonsContainer />
 					</div>
 				)}
 				<AnimatedOutlet>{children}</AnimatedOutlet>
 			</div>
-			{!isGame && <LoadingModal />}
-			{!isGame && (
+			{!hideGlobalNav && <LoadingModal />}
+			{!hideGlobalNav && (
 				<div className='absolute inset-0 z-0 bg-site-bg'>
 					{mounted && hasAcceleration ?
 						<Suspense

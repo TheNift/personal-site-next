@@ -218,7 +218,14 @@ const english = {
 		description: "I'm a constantly-improving software engineer and computer enthusiast! This is my personal portfolio site, built to showcase my capabilities.",
 		url: 'https://example.com',
 		ogImage: '/images/meta_image.webp',
-	}
+	},
+	game: {
+		confirmation: {
+			title: 'Enter game?',
+			yes: 'Yes',
+			no: 'No',
+		},
+	},
 };
 
 const vietnamese = {
@@ -227,22 +234,32 @@ const vietnamese = {
 			{
 				text: 'Trang chủ',
 				to: '/',
+				icon: 'home',
 			},
 			{
 				text: 'Giới thiệu',
 				to: '/about',
+				icon: 'user',
 			},
 			{
 				text: 'Kinh nghiệm',
 				to: '/experience',
+				icon: 'briefcase',
 			},
 			{
 				text: 'Danh mục',
 				to: '/portfolio',
+				icon: 'folder-open',
 			},
 			{
 				text: 'Liên hệ',
 				to: '/contact',
+				icon: 'mail',
+			},
+			{
+				text: 'Thư viện ảnh',
+				to: '/gallery',
+				icon: 'images',
 			},
 			{
 				text: 'Game',
@@ -418,7 +435,14 @@ const vietnamese = {
 			email: "Email",
 			message: "Tin nhắn"
 		}
-	}
+	},
+	game: {
+		confirmation: {
+			title: 'Vào trò chơi?',
+			yes: 'Có',
+			no: 'Không',
+		},
+	},
 };
 
 export { english as englishAnonymous, vietnamese as vietnameseAnonymous };

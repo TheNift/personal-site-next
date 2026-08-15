@@ -1,0 +1,74 @@
+@layer components {
+  .btn {
+    @apply py-2 px-4 bg-yorha text-yorha-dark transition-all duration-300 text-center relative z-4 hover:cursor-pointer hover:bg-yorha/80;
+    transform: skewX(-15deg) translateX(-15px);
+    box-sizing: border-box;
+  }
+  .btn > * {
+    transform: skewX(15deg);
+  }
+
+  .menu-btn {
+    @apply py-2 bg-yorha text-yorha-dark transition-all duration-300 text-center relative z-4 my-1;
+    padding-left: 2rem;
+    padding-right: 3rem;
+    transform: skewX(-15deg) translateX(-15px);
+    box-sizing: border-box;
+  }
+  .menu-btn::before {
+    @apply absolute bg-transparent;
+    content: "";
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    z-index: -2;
+  }
+
+  .menu-btn > * {
+    transform: skewX(15deg);
+  }
+
+  /* Wheel Nav */
+  .wheel-nav-container {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 999;
+    pointer-events: auto;
+    overflow: hidden;
+  }
+
+  .wheel-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 0 16px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--color-yorha);
+    white-space: nowrap;
+    transform-origin: left center;
+    will-change: transform, opacity;
+    user-select: none;
+  }
+
+  .wheel-nav-item--active {
+    color: var(--color-yorha-dark);
+  }
+
+  /* The skewed highlight bar behind the active item */
+  .wheel-nav-highlight {
+    position: absolute;
+    inset: 1px;
+    background: var(--color-yorha);
+    z-index: -1;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
+  }
+
+  .hidden-scrollbar:hover *::-webkit-scrollbar {
+    color: var(--color-yorha);
+  }
+}
