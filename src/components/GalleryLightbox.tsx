@@ -197,6 +197,14 @@ function GalleryLightbox({
 							</motion.div>
 						)}
 					</AnimatePresence>
+					<div className='w-full flex justify-end align-center'>
+						{image.date && (
+							<div className='lightbox-meta-field'>
+								<span className='lightbox-meta-field-label sr-only'>Date</span>
+								<span className='lightbox-meta-field-value'>{formattedDate || image.date}</span>
+							</div>
+						)}
+					</div>
 					<img
 						src={`/api/gallery/image/${encodeURIComponent(image.key)}`}
 						alt={image.title || image.key}
@@ -219,42 +227,40 @@ function GalleryLightbox({
 							</p>
 						)}
 						<div className='lightbox-meta-fields'>
-							{image.camera_name && (
-								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Camera</span>
-									<span className='lightbox-meta-field-value'>{image.camera_name}</span>
-								</div>
-							)}
+							<div className='w-full flex justify-between'>
+								{image.camera_name && (
+									<div className='lightbox-meta-field'>
+										<span className='lightbox-meta-field-label sr-only'>Camera</span>
+										<span className='lightbox-meta-field-value text-[1em] font-semibold'>{image.camera_name}</span>
+									</div>
+								)}
+								{image.resolution && (
+									<div className='lightbox-meta-field'>
+										<span className='lightbox-meta-field-label sr-only'>Resolution</span>
+										<span className='lightbox-meta-field-value'>{image.resolution}</span>
+									</div>
+								)}
+							</div>
 							{image.location && (
 								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Location</span>
+									<span className='lightbox-meta-field-label sr-only'>Location</span>
 									<span className='lightbox-meta-field-value'>{image.location}</span>
 								</div>
 							)}
-							{image.date && (
-								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Date</span>
-									<span className='lightbox-meta-field-value'>{formattedDate || image.date}</span>
-								</div>
-							)}
-							{image.focal_length && (
-								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Focal Length</span>
-									<span className='lightbox-meta-field-value'>{image.focal_length}</span>
-								</div>
-							)}
-							{image.aperture && (
-								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Aperture</span>
-									<span className='lightbox-meta-field-value'>{image.aperture}</span>
-								</div>
-							)}
-							{image.resolution && (
-								<div className='lightbox-meta-field'>
-									<span className='lightbox-meta-field-label'>Resolution</span>
-									<span className='lightbox-meta-field-value'>{image.resolution}</span>
-								</div>
-							)}
+							<div className='flex gap-2'>
+								{image.focal_length && (
+									<div className='lightbox-meta-field'>
+										<span className='lightbox-meta-field-label sr-only'>Focal Length</span>
+										<span className='lightbox-meta-field-value'>{image.focal_length}</span>
+									</div>
+								)}
+								{image.aperture && (
+									<div className='lightbox-meta-field'>
+										<span className='lightbox-meta-field-label sr-only'>Aperture</span>
+										<span className='lightbox-meta-field-value'>{image.aperture}</span>
+									</div>
+								)}
+							</div>
 						</div>
 					</div>
 				)}
