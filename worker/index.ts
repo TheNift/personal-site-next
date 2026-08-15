@@ -489,7 +489,10 @@ function compareGalleryImages(a: GalleryImage, b: GalleryImage): number {
 }
 
 async function handleGalleryList(env: Env): Promise<Response> {
-	const listed = await env.GALLERY_BUCKET.list({ limit: 1000 });
+	const listed = await env.GALLERY_BUCKET.list({
+		limit: 1000,
+		include: ["customMetadata", "httpMetadata"],
+	});
 	const images = listed.objects
 		.filter((obj) => isImageKey(obj.key))
 		.map(mapR2ObjectToGalleryImage);
@@ -682,7 +685,10 @@ async function handleAdminGalleryList(request: Request, env: Env): Promise<Respo
 		});
 	}
 
-	const listed = await env.GALLERY_BUCKET.list({ limit: 1000 });
+	const listed = await env.GALLERY_BUCKET.list({
+		limit: 1000,
+		include: ["customMetadata", "httpMetadata"],
+	});
 	const images = listed.objects
 		.filter((obj) => isImageKey(obj.key))
 		.map(mapR2ObjectToGalleryImage);
@@ -852,7 +858,10 @@ async function handleAdminGalleryUpdateMetadata(key: string, request: Request, e
 		}
 
 		await env.GALLERY_BUCKET.put(key, existing.body, {
-			httpMetadata: existing.httpMetadata,
+			httpMetadata: {
+				...existing.httpMetadata,
+				contentType: existing.httpMetadata?.contentType || contentTypeFromKey(key),
+			},
 			customMetadata,
 		});
 
