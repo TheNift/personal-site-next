@@ -194,7 +194,7 @@ function GalleryLightbox({
 				animate={{ opacity: 1, scale: 1, y: 0 }}
 				exit={{ opacity: 0, scale: 0.97, y: 6 }}
 				transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-				className='lightbox-frame'
+				className={`lightbox-frame ${formattedDate ? 'has-header' : ''}`}
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Top-right date on the print */}
