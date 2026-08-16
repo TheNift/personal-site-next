@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import LoadingScreen from './LoadingScreen';
 import { useBackground } from '@/contexts/BackgroundContext';
+import { useUI } from '@/contexts/UIContext';
 
 const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
 
@@ -66,10 +67,10 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
 	const isGallery = pathname === '/gallery';
-	const isGame = pathname.startsWith('/game');
 	const isAdmin = pathname.startsWith('/admin');
 	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
-	const hideGlobalNav = isGame || isAdmin;
+	const { isNavHidden } = useUI();
+	const hideGlobalNav = isNavHidden || isAdmin;
 
 	return (
 		<div className='h-screen w-screen relative bg-site-bg'>

@@ -68,6 +68,52 @@
     border-bottom-right-radius: 2px;
   }
 
+  /* ── Mobile Wheel Nav (horizontal mirror of desktop vertical wheel) ── */
+  .mobile-wheel-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    z-index: 999;
+    pointer-events: auto;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  .mobile-wheel-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 8px;
+    height: 48px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--color-yorha);
+    white-space: nowrap;
+    transform-origin: center center;
+    will-change: transform, opacity;
+    user-select: none;
+    -webkit-user-select: none;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .mobile-wheel-item--active {
+    color: var(--color-yorha-dark);
+  }
+
+  .mobile-wheel-highlight {
+    position: absolute;
+    inset: 1px;
+    background: var(--color-yorha);
+    z-index: -1;
+    border-top-left-radius: 2px;
+    border-top-right-radius: 2px;
+    pointer-events: none;
+  }
+
   .hidden-scrollbar:hover *::-webkit-scrollbar {
     color: var(--color-yorha);
   }

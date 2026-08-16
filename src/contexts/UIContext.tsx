@@ -11,6 +11,8 @@ interface UIContextType {
 	isContentHidden: boolean;
 	setContentHidden: (hidden: boolean) => void;
 	toggleContentHidden: () => void;
+	isNavHidden: boolean;
+	setNavHidden: (hidden: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -21,9 +23,14 @@ interface UIProviderProps {
 
 export const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 	const [isContentHidden, setIsContentHidden] = useState(false);
+	const [isNavHidden, setIsNavHidden] = useState(false);
 
 	const setContentHidden = (hidden: boolean) => {
 		setIsContentHidden(hidden);
+	};
+
+	const setNavHidden = (hidden: boolean) => {
+		setIsNavHidden(hidden);
 	};
 
 	const toggleContentHidden = () => {
@@ -34,6 +41,8 @@ export const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 		isContentHidden,
 		setContentHidden,
 		toggleContentHidden,
+		isNavHidden,
+		setNavHidden,
 	};
 
 	return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

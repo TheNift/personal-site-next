@@ -1,17 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import GameConfirmationModal from '@/components/GameConfirmationModal';
+import { useUI } from '@/contexts/UIContext';
 
 export default function GamePage() {
 	const { strings } = useLanguage();
 	const router = useRouter();
+	const { setNavHidden } = useUI();
 	const homeText = strings.ui.nav.find((n) => n.to === '/')?.text || 'Home';
 	const [gameVersion, setGameVersion] = useState<string | null>(null);
 	const [hasEntered, setHasEntered] = useState(false);
+
+	// Hide nav when user confirms, restore on unmount
+	const handleConfirm = useCallback(() => {
+		setHasEntered(true);
+		setNavHidden(true);
+	}, [setNavHidden]);
+
+	useEffect(() => {
+		return () => setNavHidden(false);
+	}, [setNavHidden]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -78,7 +90,7 @@ export default function GamePage() {
 			{/* Confirmation modal before entering the game */}
 			<GameConfirmationModal
 				isOpen={!hasEntered}
-				onConfirm={() => setHasEntered(true)}
+				onConfirm={handleConfirm}
 				onCancel={() => router.push('/')}
 			/>
 
