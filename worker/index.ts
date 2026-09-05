@@ -1,6 +1,7 @@
 import "./set-env";
 import handler from "vinext/server/app-router-entry";
 import { handleImageOptimization } from "vinext/server/image-optimization";
+import { extractExifMetadata } from "../src/utils/metadata";
 
 interface Env {
 	ASSETS: { fetch: (req: Request | string) => Promise<Response> };
@@ -396,7 +397,7 @@ function contentTypeFromKey(key: string): string {
 
 function thumbnailKeyFor(originalKey: string): string {
 	const baseName = originalKey.replace(/\.[^.]+$/, "");
-	return `${THUMBNAIL_PREFIX}${baseName}.${THUMBNAIL_FORMAT}`;
+	return `${THUMBNAIL_PREFIX}${baseName}.${THUMBNAIL_FORMAT}` ;
 }
 
 function mapR2ObjectToGalleryImage(obj: R2Object): GalleryImage {
@@ -721,11 +722,12 @@ async function handleAdminGalleryUpload(request: Request, env: Env): Promise<Res
 			});
 		}
 
-		const camera_name = (formData.get("camera_name") as string | null) || "";
-		const location = (formData.get("location") as string | null) || "";
-		const date = (formData.get("date") as string | null) || "";
-		const focal_length = (formData.get("focal_length") as string | null) || "";
-		const aperture = (formData.get("aperture") as string | null) || "";
+		let camera_name = (formData.get("camera_name") as string | null) || "";
+		let location = (formData.get("location") as string | null) || "";
+		let date = (formData.get("date") as string | null) || "";
+		let focal_length = (formData.get("focal_length") as string | null) || "";
+		let aperture = (formData.get("aperture") as string | null) || "";
+		let resolution = (formData.get("resolution") as string | null) || "";
 		const title = (formData.get("title") as string | null) || "";
 		const description = (formData.get("description") as string | null) || "";
 
@@ -742,11 +744,34 @@ async function handleAdminGalleryUpload(request: Request, env: Env): Promise<Res
 		const arrayBuffer = await file.arrayBuffer();
 		const uint8Array = new Uint8Array(arrayBuffer);
 
-		// Auto-detect resolution
-		let resolution = "";
-		const dims = getImageDimensions(uint8Array);
-		if (dims) {
-			resolution = `${dims.width}x${dims.height}`;
+		// Auto-detect resolution via header parsing if not provided
+		if (!resolution.trim()) {
+			const dims = getImageDimensions(uint8Array);
+			if (dims) {
+				resolution = `${dims.width}x${dims.height}`;
+			}
+		}
+
+		// Fallback EXIF metadata extraction for any missing fields
+		if (
+			!camera_name.trim() ||
+			!focal_length.trim() ||
+			!aperture.trim() ||
+			!date.trim() ||
+			!location.trim() ||
+			!resolution.trim()
+		) {
+			try {
+				const exif = await extractExifMetadata(uint8Array, { reverseGeocodeGps: false });
+				if (!camera_name.trim() && exif.camera_name) camera_name = exif.camera_name;
+				if (!focal_length.trim() && exif.focal_length) focal_length = exif.focal_length;
+				if (!aperture.trim() && exif.aperture) aperture = exif.aperture;
+				if (!date.trim() && exif.date) date = exif.date;
+				if (!location.trim() && exif.location) location = exif.location;
+				if (!resolution.trim() && exif.resolution) resolution = exif.resolution;
+			} catch (e) {
+				console.warn("[Admin Upload] Fallback EXIF extraction error:", e);
+			}
 		}
 
 		const customMetadata: Record<string, string> = {};
@@ -1044,4 +1069,3 @@ const worker = {
 };
 
 export default worker;
-

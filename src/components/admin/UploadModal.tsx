@@ -2,7 +2,8 @@
 
 import React, { useState, useRef } from 'react';
 import type { GalleryImage } from '@/types/gallery';
-import { Upload, X, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, AlertCircle, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { extractExifMetadata, getBrowserImageDimensions } from '@/utils/metadata';
 
 interface UploadModalProps {
 	isOpen: boolean;
@@ -18,22 +19,132 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 	const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 	const [focalLength, setFocalLength] = useState('');
 	const [aperture, setAperture] = useState('');
+	const [resolution, setResolution] = useState('');
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
 	const [uploading, setUploading] = useState(false);
+	const [detectingMetadata, setDetectingMetadata] = useState(false);
+	const [detectedFields, setDetectedFields] = useState<string[]>([]);
+	const [isDragging, setIsDragging] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	if (!isOpen) return null;
 
+	const resetForm = () => {
+		setFile(null);
+		if (previewUrl) URL.revokeObjectURL(previewUrl);
+		setPreviewUrl(null);
+		setCameraName('');
+		setLocation('');
+		setDate(new Date().toISOString().split('T')[0]);
+		setFocalLength('');
+		setAperture('');
+		setResolution('');
+		setTitle('');
+		setDescription('');
+		setError(null);
+		setDetectedFields([]);
+		setDetectingMetadata(false);
+		setIsDragging(false);
+	};
+
+	const handleClose = () => {
+		if (uploading) return;
+		resetForm();
+		onClose();
+	};
+
+	const processFile = async (selected: File) => {
+		setFile(selected);
+		setError(null);
+		const url = URL.createObjectURL(selected);
+		setPreviewUrl(url);
+
+		setDetectingMetadata(true);
+		setDetectedFields([]);
+
+		const newlyDetected: string[] = [];
+
+		try {
+			// 1. Detect image dimensions
+			const dims = await getBrowserImageDimensions(selected);
+			if (dims) {
+				const resStr = `${dims.width}x${dims.height}`;
+				setResolution(resStr);
+				newlyDetected.push('Resolution');
+			}
+
+			// 2. Parse EXIF metadata
+			const meta = await extractExifMetadata(selected, { reverseGeocodeGps: true });
+
+			if (meta.camera_name) {
+				setCameraName(meta.camera_name);
+				newlyDetected.push('Camera');
+			}
+			if (meta.focal_length) {
+				setFocalLength(meta.focal_length);
+				newlyDetected.push('Focal Length');
+			}
+			if (meta.aperture) {
+				setAperture(meta.aperture);
+				newlyDetected.push('Aperture');
+			}
+			if (meta.date) {
+				setDate(meta.date);
+				newlyDetected.push('Date');
+			} else if (selected.lastModified) {
+				const fileDate = new Date(selected.lastModified);
+				if (!isNaN(fileDate.getTime())) {
+					const y = fileDate.getFullYear();
+					const m = String(fileDate.getMonth() + 1).padStart(2, '0');
+					const d = String(fileDate.getDate()).padStart(2, '0');
+					setDate(`${y}-${m}-${d}`);
+				}
+			}
+			if (meta.location) {
+				setLocation(meta.location);
+				newlyDetected.push('Location');
+			}
+			if (!dims && meta.resolution) {
+				setResolution(meta.resolution);
+				newlyDetected.push('Resolution');
+			}
+		} catch (err) {
+			console.warn('Metadata extraction failed:', err);
+		} finally {
+			setDetectingMetadata(false);
+			setDetectedFields(newlyDetected);
+		}
+	};
+
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selected = e.target.files?.[0];
 		if (selected) {
-			setFile(selected);
-			setError(null);
-			const url = URL.createObjectURL(selected);
-			setPreviewUrl(url);
+			processFile(selected);
+		}
+	};
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(true);
+	};
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(false);
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(false);
+		const droppedFile = e.dataTransfer.files?.[0];
+		if (droppedFile && droppedFile.type.startsWith('image/')) {
+			processFile(droppedFile);
 		}
 	};
 
@@ -55,6 +166,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 			if (date.trim()) formData.append('date', date.trim());
 			if (focalLength.trim()) formData.append('focal_length', focalLength.trim());
 			if (aperture.trim()) formData.append('aperture', aperture.trim());
+			if (resolution.trim()) formData.append('resolution', resolution.trim());
 			if (title.trim()) formData.append('title', title.trim());
 			if (description.trim()) formData.append('description', description.trim());
 
@@ -67,6 +179,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 
 			if (res.ok && data.success && data.image) {
 				onSuccess(data.image);
+				resetForm();
 				onClose();
 			} else {
 				setError(data.error || 'Failed to upload photo');
@@ -79,7 +192,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 	};
 
 	return (
-		<div className='admin-modal-backdrop' onClick={onClose}>
+		<div className='admin-modal-backdrop' onClick={handleClose}>
 			<div
 				className='admin-modal'
 				onClick={(e) => e.stopPropagation()}
@@ -90,7 +203,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 						Upload Gallery Image
 					</h2>
 					<button
-						onClick={onClose}
+						onClick={handleClose}
 						className='text-yorha/50 hover:text-yorha p-1 cursor-pointer transition-colors'
 						aria-label='Close'
 					>
@@ -106,7 +219,14 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 						</label>
 						<div
 							onClick={() => fileInputRef.current?.click()}
-							className='border-2 border-dashed border-yorha/30 hover:border-yorha/60 rounded-md p-4 text-center cursor-pointer transition-colors bg-black/20 flex flex-col items-center justify-center min-h-[140px]'
+							onDragOver={handleDragOver}
+							onDragLeave={handleDragLeave}
+							onDrop={handleDrop}
+							className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-colors bg-black/20 flex flex-col items-center justify-center min-h-[140px] ${
+								isDragging
+									? 'border-yorha bg-yorha/10'
+									: 'border-yorha/30 hover:border-yorha/60'
+							}`}
 						>
 							<input
 								ref={fileInputRef}
@@ -126,7 +246,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 										{file?.name} ({(file!.size / (1024 * 1024)).toFixed(2)} MB)
 									</span>
 									<span className='text-[10px] text-yorha/40 underline'>
-										Click to choose another image
+										Click or drop another image to replace
 									</span>
 								</div>
 							) : (
@@ -136,15 +256,32 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 										Click or drag photo here to upload
 									</span>
 									<span className='text-[11px] text-yorha/40'>
-										Supports JPG, PNG, WEBP, AVIF
+										Supports JPG, PNG, WEBP, AVIF (EXIF auto-detected)
 									</span>
 								</div>
 							)}
 						</div>
 					</div>
 
+					{/* Metadata detection status */}
+					{detectingMetadata && (
+						<div className='flex items-center gap-2 p-2.5 bg-yorha/5 border border-yorha/20 rounded text-yorha text-xs font-mono'>
+							<div className='w-3.5 h-3.5 border-2 border-yorha/30 border-t-yorha rounded-full animate-spin shrink-0' />
+							<span>Reading EXIF metadata from photo...</span>
+						</div>
+					)}
+
+					{!detectingMetadata && detectedFields.length > 0 && (
+						<div className='flex items-center gap-2 p-2.5 bg-yorha/10 border border-yorha/20 rounded text-yorha text-xs font-mono'>
+							<Sparkles size={14} className='text-yorha shrink-0' />
+							<span className='truncate'>
+								Auto-detected EXIF: <strong>{detectedFields.join(', ')}</strong>
+							</span>
+						</div>
+					)}
+
 					{/* Metadata fields */}
-					<div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-2'>
+					<div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-1'>
 						<div>
 							<label className='block text-[11px] font-semibold uppercase tracking-wider text-yorha/70 mb-1'>
 								Camera Name
@@ -220,9 +357,9 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 							</label>
 							<input
 								type='text'
-								value='Automatic on upload'
+								value={resolution || (file ? 'Detecting...' : 'Auto on selection')}
 								disabled
-								className='admin-input text-xs opacity-60 cursor-not-allowed'
+								className='admin-input text-xs opacity-75 cursor-not-allowed font-mono'
 							/>
 						</div>
 					</div>
@@ -265,7 +402,7 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 					<div className='flex items-center justify-end gap-3 pt-4 border-t border-yorha/15'>
 						<button
 							type='button'
-							onClick={onClose}
+							onClick={handleClose}
 							disabled={uploading}
 							className='admin-btn admin-btn-secondary'
 						>
