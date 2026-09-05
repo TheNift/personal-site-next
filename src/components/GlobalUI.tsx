@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import LoadingScreen from './LoadingScreen';
 import { useBackground } from '@/contexts/BackgroundContext';
+import { useUI } from '@/contexts/UIContext';
 
 const BackgroundScene = lazy(() => import('@/components/BackgroundScene'));
 
@@ -66,7 +67,10 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
 	const isGallery = pathname === '/gallery';
+	const isAdmin = pathname.startsWith('/admin');
 	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
+	const { isNavHidden } = useUI();
+	const hideGlobalNav = isNavHidden || isAdmin;
 
 	return (
 		<div className='h-screen w-screen relative bg-site-bg'>
@@ -75,22 +79,26 @@ function GlobalUI({ children }: { children: ReactNode }) {
 					isInteractive ? 'pointer-events-none' : ''
 				}`}
 			>
-				<NavUI />
-				<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
-					<ToggleButtonsContainer />
-				</div>
+				{!hideGlobalNav && <NavUI />}
+				{!hideGlobalNav && (
+					<div className='absolute bottom-4 right-4 z-50 hidden md:block'>
+						<ToggleButtonsContainer />
+					</div>
+				)}
 				<AnimatedOutlet>{children}</AnimatedOutlet>
 			</div>
-			<LoadingModal />
-			<div className='absolute inset-0 z-0 bg-site-bg'>
-				{mounted && hasAcceleration ?
-					<Suspense
-						fallback={<div className='w-full h-full bg-inherit' />}
-					>
-						<BackgroundScene />
-					</Suspense>
-				:	<div className='w-full h-full bg-inherit' />}
-			</div>
+			{!hideGlobalNav && <LoadingModal />}
+			{!hideGlobalNav && (
+				<div className='absolute inset-0 z-0 bg-site-bg'>
+					{mounted && hasAcceleration ?
+						<Suspense
+							fallback={<div className='w-full h-full bg-inherit' />}
+						>
+							<BackgroundScene />
+						</Suspense>
+					:	<div className='w-full h-full bg-inherit' />}
+				</div>
+			)}
 		</div>
 	);
 }

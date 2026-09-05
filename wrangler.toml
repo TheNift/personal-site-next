@@ -1,4 +1,4 @@
-name = "personal-site-next"
+name = "personal-site-next-testing"
 main = "./worker/index.ts"
 compatibility_date = "2026-02-16"
 compatibility_flags = ["nodejs_compat"]
@@ -13,3 +13,8 @@ bucket_name = "gallery-photos"
 
 [images]
 binding = "IMAGES"
+
+[[r2_buckets]]
+binding = "GAME_BUCKET"
+bucket_name = "mmo-files"
+

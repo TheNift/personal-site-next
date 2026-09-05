@@ -5,7 +5,6 @@ import type { MotionValue } from 'motion/react';
 import {
 	useCallback,
 	memo,
-	useMemo,
 	useState,
 	useRef,
 	useEffect,
@@ -16,29 +15,41 @@ import ScrambleText from '@components/ScrambleText';
 import { useBackground } from '@contexts/BackgroundContext';
 import { useUI } from '@/contexts/UIContext';
 import { useRouter } from 'next/navigation';
-import { Home, User, Briefcase, FolderOpen, Mail, Images } from 'lucide-react';
+import { Home, User, Briefcase, FolderOpen, Mail, Images, Gamepad } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
 
-// ---------- Icon map (data-driven) ----------
-const ICON_MAP: Record<string, ComponentType<LucideProps>> = {
-	home: Home,
-	user: User,
-	briefcase: Briefcase,
-	'folder-open': FolderOpen,
-	mail: Mail,
-	images: Images,
-};
+// ---------- Icon map ----------
+function getIcon(name?: string): ComponentType<LucideProps> | undefined {
+	if (!name) return undefined;
+	const normalized = name.toLowerCase().replace(/_/g, '-');
+	switch (normalized) {
+		case 'home':
+			return Home;
+		case 'user':
+			return User;
+		case 'briefcase':
+			return Briefcase;
+		case 'folder-open':
+			return FolderOpen;
+		case 'mail':
+			return Mail;
+		case 'images':
+			return Images;
+		case 'gamepad':
+			return Gamepad;
+		default:
+			return undefined;
+	}
+}
 
 // ---------- Constants ----------
 const VISIBLE_SLOTS = 5;
-const HALF_VISIBLE = Math.floor(VISIBLE_SLOTS / 2);
-const SLOT_HEIGHT = 48; // px per slot
+const SLOT_HEIGHT = 48;
 const CONTAINER_HEIGHT = VISIBLE_SLOTS * SLOT_HEIGHT;
 const CENTER_Y = (CONTAINER_HEIGHT - SLOT_HEIGHT) / 2;
-const SCROLL_THRESHOLD = 50; // px of deltaY before a "click"
-const LOCK_IN_DELAY = 400; // ms after last scroll to navigate
-const SH = SLOT_HEIGHT;
+const SCROLL_THRESHOLD = 50;
+const LOCK_IN_DELAY = 400;
 
 // Shortest signed circular distance from `from` to `to`
 function circularDelta(from: number, to: number, count: number): number {
@@ -77,17 +88,17 @@ const WheelNavItem = memo(function WheelNavItem({
 
 	const scale = useTransform(
 		rawOffset,
-		[-3 * SH, -2 * SH, -SH, 0, SH, 2 * SH, 3 * SH],
+		[-3 * SLOT_HEIGHT, -2 * SLOT_HEIGHT, -SLOT_HEIGHT, 0, SLOT_HEIGHT, 2 * SLOT_HEIGHT, 3 * SLOT_HEIGHT],
 		[0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4],
 	);
 
 	const opacity = useTransform(
 		rawOffset,
-		[-2.5 * SH, -2 * SH, -SH, 0, SH, 2 * SH, 2.5 * SH],
+		[-2.5 * SLOT_HEIGHT, -2 * SLOT_HEIGHT, -SLOT_HEIGHT, 0, SLOT_HEIGHT, 2 * SLOT_HEIGHT, 2.5 * SLOT_HEIGHT],
 		[0, 0.25, 0.6, 1.0, 0.6, 0.25, 0],
 	);
 
-	const Icon = ICON_MAP[item.icon];
+	const Icon = getIcon(item.icon);
 
 	return (
 		<motion.div
@@ -102,7 +113,7 @@ const WheelNavItem = memo(function WheelNavItem({
 			className={`wheel-nav-item ${isActive ? 'wheel-nav-item--active' : ''}`}
 			onClick={() => onItemClick(itemIndex)}
 		>
-			{Icon && <Icon size={isActive ? 20 : 16} strokeWidth={1.5} />}
+			{Icon && <Icon size={isActive ? 20 : 16} strokeWidth={1.5} className='shrink-0' />}
 			<Link
 				href={item.to}
 				onClick={(e) => {
@@ -198,14 +209,12 @@ function DesktopWheelNav() {
 				setActualCenter(newCenter);
 				setCameraPosition(newCenter);
 
-				// Reset lock-in timer
 				if (lockInTimer.current) clearTimeout(lockInTimer.current);
 				lockInTimer.current = setTimeout(
 					() => commitNavigation(newCenter),
 					LOCK_IN_DELAY,
 				);
 			} else {
-				// Small scrolls also reset the lock-in timer
 				if (lockInTimer.current) clearTimeout(lockInTimer.current);
 				const center =
 					((scrollPosRef.current % itemCount) + itemCount) % itemCount;
@@ -218,7 +227,6 @@ function DesktopWheelNav() {
 		[itemCount, setCameraPosition, springPos, commitNavigation, setContentHidden],
 	);
 
-	// Attach non-passive wheel listener
 	useEffect(() => {
 		const container = containerRef.current;
 		if (!container) return;
@@ -226,7 +234,6 @@ function DesktopWheelNav() {
 		return () => container.removeEventListener('wheel', handleWheel);
 	}, [handleWheel]);
 
-	// Click a specific item — take the shortest path
 	const handleItemClick = useCallback(
 		(index: number) => {
 			if (lockInTimer.current) clearTimeout(lockInTimer.current);
@@ -254,7 +261,6 @@ function DesktopWheelNav() {
 				minWidth: 200,
 			}}
 		>
-			{/* Fixed center indicator — stays in place, subtle pulse on scroll */}
 			<motion.div
 				className='wheel-nav-highlight'
 				animate={{
@@ -292,77 +298,281 @@ function DesktopWheelNav() {
 	);
 }
 
-function MobileNavUI() {
-	const { strings } = useLanguage();
-	const { setContentHidden } = useUI();
-	const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+// ---------- Mobile Horizontal Wheel Constants ----------
+const MOBILE_SLOT_WIDTH = 145;
+const MOBILE_DRAG_THRESHOLD = 30;
 
-	const handleClick = useCallback(() => {
-		setTimeout(() => {
-			setIsMobileNavOpen(false);
-			setContentHidden(false);
-		}, 100);
-	}, [setContentHidden]);
+const MobileWheelNavItem = memo(function MobileWheelNavItem({
+	itemIndex,
+	itemCount,
+	item,
+	springPos,
+	isActive,
+	onItemClick,
+}: {
+	itemIndex: number;
+	itemCount: number;
+	item: { text: string; to: string; icon: string };
+	springPos: MotionValue<number>;
+	isActive: boolean;
+	onItemClick: (index: number) => void;
+}) {
+	const circumference = itemCount * MOBILE_SLOT_WIDTH;
 
-	const navItems = useMemo(
-		() =>
-			strings.ui.nav.map((item, index) => (
-				<Link
-					key={`nav-${index}-${item.to}-mobile`}
-					href={item.to}
-					onClick={handleClick}
-					className='py-[12px] [&:not(:last-child)]:border-b-2 border-yorha-dark'
-				>
-					<ScrambleText>{item.text}</ScrambleText>
-				</Link>
-			)),
-		[strings.ui.nav, handleClick],
+	const rawOffset = useTransform(springPos, (sv) => {
+		let pos = (itemIndex - sv) * MOBILE_SLOT_WIDTH;
+		pos =
+			((pos % circumference) + circumference + circumference / 2) %
+				circumference -
+			circumference / 2;
+		return pos;
+	});
+
+	const x = useTransform(rawOffset, (ro) => ro - MOBILE_SLOT_WIDTH / 2);
+
+	const scale = useTransform(
+		rawOffset,
+		[-3 * MOBILE_SLOT_WIDTH, -2 * MOBILE_SLOT_WIDTH, -MOBILE_SLOT_WIDTH, 0, MOBILE_SLOT_WIDTH, 2 * MOBILE_SLOT_WIDTH, 3 * MOBILE_SLOT_WIDTH],
+		[0.4, 0.6, 0.8, 1.0, 0.8, 0.6, 0.4],
 	);
 
+	const opacity = useTransform(
+		rawOffset,
+		[-2.5 * MOBILE_SLOT_WIDTH, -2 * MOBILE_SLOT_WIDTH, -MOBILE_SLOT_WIDTH, 0, MOBILE_SLOT_WIDTH, 2 * MOBILE_SLOT_WIDTH, 2.5 * MOBILE_SLOT_WIDTH],
+		[0, 0.25, 0.6, 1.0, 0.6, 0.25, 0],
+	);
+
+	const Icon = getIcon(item.icon);
+
 	return (
-		<>
-			<button
-				className='w-[20px] h-[20px] absolute z-1000 bg-transparent top-[16px] right-[16px] pointer-events-auto md:hidden flex flex-col justify-center items-center'
-				onClick={() => {
-					setIsMobileNavOpen(!isMobileNavOpen);
+		<motion.div
+			style={{
+				x,
+				scale,
+				opacity,
+				position: 'absolute' as const,
+				top: 0,
+				width: MOBILE_SLOT_WIDTH,
+			}}
+			className={`mobile-wheel-item ${isActive ? 'mobile-wheel-item--active' : ''}`}
+			onClick={() => onItemClick(itemIndex)}
+		>
+			{Icon && <Icon size={isActive ? 20 : 16} strokeWidth={1.5} className='shrink-0' />}
+			<Link
+				href={item.to}
+				onClick={(e) => {
+					e.preventDefault();
+					onItemClick(itemIndex);
+				}}
+				draggable={false}
+				className='text-inherit no-underline'
+			>
+				<ScrambleText
+					speed={0.5}
+					step={10}
+					scramble={3}
+					className={`leading-[1em] ${isActive ? 'text-sm font-bold' : 'text-xs'}`}
+				>
+					{item.text}
+				</ScrambleText>
+			</Link>
+		</motion.div>
+	);
+});
+
+function MobileWheelNav() {
+	const { setCameraPosition, currentPageIndex } = useBackground();
+	const { strings } = useLanguage();
+	const { setContentHidden } = useUI();
+	const router = useRouter();
+
+	const navItems = strings.ui?.nav ?? [];
+	const itemCount = navItems.length;
+
+	const scrollPosRef = useRef(currentPageIndex);
+	const [actualCenter, setActualCenter] = useState(currentPageIndex);
+
+	const springPos = useSpring(currentPageIndex, {
+		stiffness: 300,
+		damping: 30,
+	});
+
+	const dragAccum = useRef(0);
+	const lockInTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const isDragging = useRef(false);
+	const [isDraggingState, setIsDraggingState] = useState(false);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const dragStartX = useRef(0);
+	const hasMoved = useRef(false);
+
+	useEffect(() => {
+		if (itemCount === 0) return;
+		const current =
+			((scrollPosRef.current % itemCount) + itemCount) % itemCount;
+		const delta = circularDelta(current, currentPageIndex, itemCount);
+		if (delta !== 0) {
+			scrollPosRef.current += delta;
+			springPos.set(scrollPosRef.current);
+			setActualCenter(currentPageIndex);
+		}
+	}, [currentPageIndex, itemCount, springPos]);
+
+	const commitNavigation = useCallback(
+		(index: number) => {
+			if (!navItems[index]) return;
+			startTransition(() => router.push(navItems[index].to));
+			setContentHidden(false);
+			isDragging.current = false;
+			setIsDraggingState(false);
+		},
+		[navItems, router, setContentHidden],
+	);
+
+	const advanceWheel = useCallback(
+		(direction: number) => {
+			scrollPosRef.current += direction;
+			springPos.set(scrollPosRef.current);
+
+			const newCenter =
+				((scrollPosRef.current % itemCount) + itemCount) % itemCount;
+			setActualCenter(newCenter);
+			setCameraPosition(newCenter);
+
+			// Reset lock-in timer
+			if (lockInTimer.current) clearTimeout(lockInTimer.current);
+			lockInTimer.current = setTimeout(
+				() => commitNavigation(newCenter),
+				LOCK_IN_DELAY,
+			);
+		},
+		[itemCount, setCameraPosition, springPos, commitNavigation],
+	);
+
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			isDragging.current = true;
+			hasMoved.current = false;
+			dragStartX.current = e.clientX;
+			dragAccum.current = 0;
+			(e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+
+			if (!isDraggingState) {
+				setIsDraggingState(true);
+				setContentHidden(true);
+			}
+		},
+		[isDraggingState, setContentHidden],
+	);
+
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isDragging.current) return;
+			const deltaX = e.clientX - dragStartX.current;
+
+			if (Math.abs(deltaX) > 5) {
+				hasMoved.current = true;
+			}
+
+			dragAccum.current = deltaX;
+
+			if (Math.abs(dragAccum.current) >= MOBILE_DRAG_THRESHOLD) {
+				const direction = dragAccum.current < 0 ? 1 : -1;
+				dragStartX.current = e.clientX;
+				dragAccum.current = 0;
+				advanceWheel(direction);
+			}
+		},
+		[advanceWheel],
+	);
+
+	const handlePointerUp = useCallback(() => {
+		isDragging.current = false;
+
+		if (!hasMoved.current) {
+			setIsDraggingState(false);
+			setContentHidden(false);
+		}
+		hasMoved.current = false;
+	}, [setContentHidden]);
+
+	const handleItemClick = useCallback(
+		(index: number) => {
+			if (lockInTimer.current) clearTimeout(lockInTimer.current);
+
+			const delta = circularDelta(actualCenter, index, itemCount);
+			scrollPosRef.current += delta;
+			springPos.set(scrollPosRef.current);
+
+			setActualCenter(index);
+			setCameraPosition(index);
+			setIsDraggingState(false);
+			commitNavigation(index);
+		},
+		[actualCenter, itemCount, springPos, setCameraPosition, commitNavigation],
+	);
+
+	if (itemCount === 0) return null;
+
+	return (
+		<div
+			ref={containerRef}
+			className='mobile-wheel-container md:hidden'
+			onPointerDown={handlePointerDown}
+			onPointerMove={handlePointerMove}
+			onPointerUp={handlePointerUp}
+			onPointerCancel={handlePointerUp}
+		>
+			<motion.div
+				className='mobile-wheel-highlight'
+				animate={{
+					scaleY: isDraggingState ? 0.92 : 1,
+					scaleX: isDraggingState ? 0.85 : 1,
+					opacity: isDraggingState ? 0.5 : 1,
+					y: 48 * -0.08,
+				}}
+				transition={{
+					type: 'spring',
+					stiffness: 400,
+					damping: 25,
+				}}
+				style={{
+					position: 'absolute',
+					left: '50%',
+					marginLeft: -MOBILE_SLOT_WIDTH / 2,
+					top: 0,
+					bottom: 0,
+					width: MOBILE_SLOT_WIDTH,
+				}}
+			/>
+			<div
+				style={{
+					position: 'relative',
+					width: '100%',
+					height: '100%',
 				}}
 			>
-				<div className='w-full h-[14px] flex flex-col justify-between items-center relative'>
-					<motion.span
-						className='w-[80%] h-[2px] bg-yorha block origin-center rounded-full'
-						animate={{
-							rotate: isMobileNavOpen ? 45 : 0,
-							y: isMobileNavOpen ? 6 : 0,
-						}}
-						transition={{ duration: 0.3 }}
-					/>
-					<motion.span
-						className='w-[80%] h-[2px] bg-yorha block rounded-full'
-						animate={{
-							opacity: isMobileNavOpen ? 0 : 1,
-						}}
-						transition={{ duration: 0.3 }}
-					/>
-					<motion.span
-						className='w-[80%] h-[2px] bg-yorha block origin-center rounded-full'
-						animate={{
-							rotate: isMobileNavOpen ? -45 : 0,
-							y: isMobileNavOpen ? -6 : 0,
-						}}
-						transition={{ duration: 0.3 }}
-					/>
+				<div
+					style={{
+						position: 'absolute',
+						left: '50%',
+						top: 0,
+						height: '100%',
+					}}
+				>
+					{navItems.map((item, itemIndex) => (
+						<MobileWheelNavItem
+							key={`mobile-wheel-${itemIndex}`}
+							itemIndex={itemIndex}
+							itemCount={itemCount}
+							item={item}
+							springPos={springPos}
+							isActive={itemIndex === actualCenter}
+							onItemClick={handleItemClick}
+						/>
+					))}
 				</div>
-				<span className='sr-only'>Menu</span>
-			</button>
-			<motion.div
-				initial={{ left: '-100vw' }}
-				animate={{ left: isMobileNavOpen ? 0 : '-100vw' }}
-				transition={{ duration: 0.3, ease: 'easeInOut' }}
-				className='flex flex-col absolute z-1005 top-1/2 -translate-y-1/2 p-[16px] bg-yorha pointer-events-auto md:hidden border-2 border-yorha-dark border-l-0 shadow-[0_0_20px_rgba(0,0,0,0.9)]'
-			>
-				{navItems}
-			</motion.div>
-		</>
+			</div>
+		</div>
 	);
 }
 
@@ -370,10 +580,11 @@ function NavUI() {
 	return (
 		<>
 			<DesktopWheelNav />
-			<MobileNavUI />
+			<MobileWheelNav />
 		</>
 	);
 }
 
 export default NavUI;
+
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import type { GalleryImage } from '@/types/gallery';
@@ -11,6 +11,8 @@ interface GalleryLightboxProps {
 	onClose: () => void;
 	onNavigate: (index: number) => void;
 }
+
+const emptySubscribe = () => () => {};
 
 function GalleryLightbox({
 	images,
@@ -23,11 +25,13 @@ function GalleryLightbox({
 	const hasNext = currentIndex < images.length - 1;
 	const backdropRef = useRef<HTMLDivElement>(null);
 	const [imageLoaded, setImageLoaded] = useState(false);
+	const [prevIndex, setPrevIndex] = useState(currentIndex);
 
-	// Reset loaded state when image changes
-	useEffect(() => {
+	// Reset loaded state when image index changes during render
+	if (prevIndex !== currentIndex) {
+		setPrevIndex(currentIndex);
 		setImageLoaded(false);
-	}, [currentIndex]);
+	}
 
 	// Preload adjacent images on mount and on index change
 	useEffect(() => {
@@ -82,15 +86,43 @@ function GalleryLightbox({
 	}, [currentIndex, images]);
 
 	const formattedDate = image.date
-		? new Date(image.date).toLocaleDateString('en-US', {
-				year: 'numeric',
-				month: 'long',
-				day: 'numeric',
-			})
+		? (() => {
+				try {
+					if (image.date.includes('-')) {
+						const parts = image.date.split('-');
+						if (parts.length === 3) {
+							const year = parseInt(parts[0], 10);
+							const month = parseInt(parts[1], 10) - 1;
+							const day = parseInt(parts[2], 10);
+							const d = new Date(year, month, day);
+							if (!isNaN(d.getTime())) {
+								return d.toLocaleDateString('en-US', {
+									year: 'numeric',
+									month: 'short',
+									day: 'numeric',
+								});
+							}
+						}
+					}
+					const d = new Date(image.date);
+					return !isNaN(d.getTime())
+						? d.toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+						  })
+						: image.date;
+				} catch {
+					return image.date;
+				}
+		  })()
 		: null;
 
-	const [mounted, setMounted] = useState(false);
-	useEffect(() => setMounted(true), []);
+	const mounted = useSyncExternalStore(
+		emptySubscribe,
+		() => true,
+		() => false
+	);
 
 	if (!mounted) return null;
 
@@ -110,23 +142,31 @@ function GalleryLightbox({
 				onClick={onClose}
 				aria-label='Close gallery'
 			>
-				✕
+				<svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+					<line x1='18' y1='6' x2='6' y2='18' />
+					<line x1='6' y1='6' x2='18' y2='18' />
+				</svg>
 			</button>
 
 			{/* Image counter */}
 			<div className='lightbox-counter'>
-				{currentIndex + 1} / {images.length}
+				<span>{currentIndex + 1}</span>
+				<span className='lightbox-counter-divider'>/</span>
+				<span>{images.length}</span>
 			</div>
 
 			{/* Navigation arrows */}
 			{hasPrev && (
 				<button
 					className='lightbox-nav lightbox-nav-prev'
-					onClick={() => onNavigate(currentIndex - 1)}
+					onClick={(e) => {
+						e.stopPropagation();
+						onNavigate(currentIndex - 1);
+					}}
 					onMouseEnter={handlePrevHover}
 					aria-label='Previous image'
 				>
-					<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+					<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
 						<polyline points='15 18 9 12 15 6' />
 					</svg>
 				</button>
@@ -134,27 +174,38 @@ function GalleryLightbox({
 			{hasNext && (
 				<button
 					className='lightbox-nav lightbox-nav-next'
-					onClick={() => onNavigate(currentIndex + 1)}
+					onClick={(e) => {
+						e.stopPropagation();
+						onNavigate(currentIndex + 1);
+					}}
 					onMouseEnter={handleNextHover}
 					aria-label='Next image'
 				>
-					<svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+					<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
 						<polyline points='9 18 15 12 9 6' />
 					</svg>
 				</button>
 			)}
 
-			{/* White framed image card */}
+			{/* White framed image card (The Print) */}
 			<motion.div
 				key={currentIndex}
-				initial={{ opacity: 0, scale: 0.96 }}
-				animate={{ opacity: 1, scale: 1 }}
-				exit={{ opacity: 0, scale: 0.96 }}
-				transition={{ duration: 0.2 }}
-				className='lightbox-frame'
+				initial={{ opacity: 0, scale: 0.97, y: 6 }}
+				animate={{ opacity: 1, scale: 1, y: 0 }}
+				exit={{ opacity: 0, scale: 0.97, y: 6 }}
+				transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+				className={`lightbox-frame ${formattedDate ? 'has-header' : ''}`}
+				onClick={(e) => e.stopPropagation()}
 			>
+				{/* Top-right date on the print */}
+				{formattedDate && (
+					<div className='lightbox-frame-header'>
+						<span className='lightbox-print-date'>{formattedDate}</span>
+					</div>
+				)}
+
 				{/* Image container */}
-				<div className='lightbox-image-container min-w-[200px]'>
+				<div className='lightbox-image-container'>
 					<AnimatePresence>
 						{!imageLoaded && (
 							<motion.div
@@ -162,40 +213,67 @@ function GalleryLightbox({
 								animate={{ opacity: 1 }}
 								exit={{ opacity: 0 }}
 								transition={{ duration: 0.2 }}
-								className='absolute inset-0 flex items-center justify-center pointer-events-none'
+								className='lightbox-image-loader'
 							>
-								<motion.div
-									animate={{ rotate: 360 }}
-									transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-									className='w-10 h-10 border-[3px] border-black/10 border-t-black/60 rounded-full'
-								/>
+								<div className='lightbox-spinner' />
 							</motion.div>
 						)}
 					</AnimatePresence>
 					<img
 						src={`/api/gallery/image/${encodeURIComponent(image.key)}`}
 						alt={image.title || image.key}
-						className='lightbox-image'
-						style={{ opacity: imageLoaded ? 1 : 0 }}
+						className={`lightbox-image ${imageLoaded ? 'is-loaded' : 'is-loading'}`}
 						onLoad={() => setImageLoaded(true)}
 						draggable={false}
 					/>
 				</div>
 
-				{/* Metadata below the photo on the white framing */}
-				{(image.title || image.description || formattedDate) && (
+				{/* Metadata below the photo on the print */}
+				{(image.title || image.description || image.camera_name || image.location || image.focal_length || image.aperture || image.resolution) && (
 					<div className='lightbox-meta'>
-						{image.title && (
-							<h2 className='lightbox-meta-title'>{image.title}</h2>
-						)}
-						{formattedDate && (
-							<p className='lightbox-meta-date'>{formattedDate}</p>
-						)}
-						{image.description && (
-							<p className='lightbox-meta-description'>
-								{image.description}
-							</p>
-						)}
+						<div className='lightbox-meta-layout'>
+							{/* Left tight column */}
+							<div className='lightbox-meta-left'>
+								{image.title && (
+									<h2 className='lightbox-meta-title'>{image.title}</h2>
+								)}
+								{image.description && (
+									<p className='lightbox-meta-description'>
+										{image.description}
+									</p>
+								)}
+								<div className='lightbox-meta-details'>
+									{image.camera_name && (
+										<div className='lightbox-meta-camera'>
+											{image.camera_name}
+										</div>
+									)}
+									{image.location && (
+										<div className='lightbox-meta-location'>
+											{image.location}
+										</div>
+									)}
+									{(image.focal_length || image.aperture) && (
+										<div className='lightbox-meta-specs'>
+											{image.focal_length && <span>{image.focal_length}</span>}
+											{image.focal_length && image.aperture && (
+												<span className='lightbox-meta-dot'>·</span>
+											)}
+											{image.aperture && <span>{image.aperture}</span>}
+										</div>
+									)}
+								</div>
+							</div>
+
+							{/* Right side: resolution at the top of under-image section */}
+							{image.resolution && (
+								<div className='lightbox-meta-right'>
+									<span className='lightbox-meta-resolution'>
+										{image.resolution}
+									</span>
+								</div>
+							)}
+						</div>
 					</div>
 				)}
 			</motion.div>

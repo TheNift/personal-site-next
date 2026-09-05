@@ -1,0 +1,15 @@
+@theme {
+  --color-yorha: #d1cdb7;
+  --color-yorha-dark: #14130d;
+  --color-dark-blue: #1a1a4d;
+  --color-light-blue: #cce6ff;
+  --color-site-bg: #11100b;
+  --color-brown: #4e471e;
+  --color-miku-light: #86cecb;
+  --color-miku-dark: #137a7f;
+
+  --font-doto: "Doto", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
+  /* --font-doto: var(--font-doto);
+	--font-jetbrains-mono: var(--font-jetbrains-mono); */
+}
