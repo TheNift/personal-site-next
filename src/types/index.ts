@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { type Euler, type Group, type Mesh, type Vector3 } from 'three';
+import { type ThreeEvent } from '@react-three/fiber';
 
 export interface Project {
 	title: string;
@@ -17,7 +18,7 @@ export type AnimatableObject = {
 export interface ModelHandle {
 	location: Vector3;
 	mesh: Mesh | Group | null;
-	gltf?: any;
+	gltf?: unknown;
 }
 
 export interface BaseModelProps {
@@ -29,10 +30,10 @@ export interface BaseModelProps {
 	gltfPath?: string;
 	suspense?: boolean;
 	fallback?: ReactNode;
-	onClick?: (event: any) => void;
-	onPointerOver?: (event: any) => void;
-	onPointerOut?: (event: any) => void;
-	onPointerMove?: (event: any) => void;
+	onClick?: (event: ThreeEvent<MouseEvent>) => void;
+	onPointerOver?: (event: ThreeEvent<PointerEvent>) => void;
+	onPointerOut?: (event: ThreeEvent<PointerEvent>) => void;
+	onPointerMove?: (event: ThreeEvent<PointerEvent>) => void;
 	receiveShadow?: boolean;
 	castShadow?: boolean;
 }

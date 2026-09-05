@@ -8,10 +8,10 @@ import { Mesh, MeshStandardMaterial } from 'three';
 export const Maxwell = forwardRef<ModelHandle, CubeProps>(
 	(
 		{
-			color = 'white',
-			size = [1, 1, 1],
-			receiveShadow = false,
-			castShadow = false,
+			color: _color = 'white',
+			size: _size = [1, 1, 1],
+			receiveShadow: _receiveShadow = false,
+			castShadow: _castShadow = false,
 			onFrame,
 			...baseProps
 		},

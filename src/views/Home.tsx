@@ -29,7 +29,7 @@ function Home() {
 			<p className='sr-only'>
 				This site is built with React, Tailwind, and ThreeJS with a main
 				focus on a background scene utilizing 3D models and a moving
-				camera based on the frontend UI's current state. If you're using
+				camera based on the frontend UI&apos;s current state. If you&apos;re using
 				a screen reader, I apologize, this site will have some
 				inaccessable visuals. Check in later for a compatibility mode,
 				as well as a simplicity mode for clients with graphics

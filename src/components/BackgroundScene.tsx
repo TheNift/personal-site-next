@@ -6,7 +6,6 @@ import {
 	useMemo,
 	useCallback,
 	startTransition,
-	Suspense,
 } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { useGLTF, Html } from '@react-three/drei';
@@ -28,7 +27,6 @@ import {
 	ContactForm3D,
 } from '@models';
 import { SpinningMaxwell } from '@components/SpinningMaxwell';
-import type { ModelHandle } from '@types';
 import { useBackground } from '@contexts/BackgroundContext';
 import { useLanguage } from '@contexts/LanguageContext';
 import { bayer8x8Shader } from '@components/shaders';
@@ -84,10 +82,6 @@ const INITIAL_CANVAS_CAMERA = {
 	far: 1000,
 };
 
-interface ModelRefs {
-	[key: string]: React.RefObject<ModelHandle>;
-}
-
 function CameraController({
 	cameraConfigs,
 	activeIndex,
@@ -140,6 +134,8 @@ function CameraController({
 		currentPosition.current.lerp(targetPosition.current, 0.05);
 		currentLookAt.current.lerp(targetLookAt.current, 0.05);
 
+		// react-three-fiber drives the camera by mutating it every frame; useFrame
+		// runs outside React's render pass, so this is the intended pattern here.
 		camera.position.copy(currentPosition.current);
 		camera.lookAt(currentLookAt.current);
 		if (activeIndex === 4) {
@@ -182,7 +178,6 @@ function SceneReadyDetector({ onReady }: { onReady: () => void }) {
 
 const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
-	const [isFullyLoaded, setIsFullyLoaded] = useState(false);
 	const [monitorHovered, setMonitorHovered] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isGalleryVisible, setIsGalleryVisible] = useState(false);
@@ -194,7 +189,9 @@ const BackgroundScene = () => {
 		return () => window.removeEventListener('resize', checkMobile);
 	}, []);
 
-	const { cameraPosition, isAssetsLoading, isCameraMoving } = useBackground();
+	const { cameraPosition, isAssetsLoading } = useBackground();
+	// Derived, not stored: avoids a redundant state + effect round-trip.
+	const isFullyLoaded = !isAssetsLoading && isSceneReady;
 	const { strings } = useLanguage();
 	const router = useRouter();
 	const navigate = useCallback(
@@ -218,14 +215,6 @@ const BackgroundScene = () => {
 	const handleSceneReady = useCallback(() => setIsSceneReady(true), []);
 
 	useEffect(() => {
-		if (!isAssetsLoading && isSceneReady) {
-			setIsFullyLoaded(true);
-		} else {
-			setIsFullyLoaded(false);
-		}
-	}, [isAssetsLoading, isSceneReady]);
-
-	useEffect(() => {
 		if (location.pathname === '/gallery') {
 			const triggerResize = () => {
 				window.dispatchEvent(new Event('resize'));
@@ -241,24 +230,15 @@ const BackgroundScene = () => {
 				clearTimeout(timer2);
 			};
 		} else {
+			// Syncing UI visibility to the current route, not deriving state.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setIsGalleryVisible(false);
 		}
 	}, [location.pathname]);
 
-	const modelRefs: ModelRefs = {
-		desk: useRef<ModelHandle>(null!),
-		motorcycle: useRef<ModelHandle>(null!),
-		computer: useRef<ModelHandle>(null!),
-		monitor: useRef<ModelHandle>(null!),
-		chair: useRef<ModelHandle>(null!),
-		keyboard: useRef<ModelHandle>(null!),
-		mouse: useRef<ModelHandle>(null!),
-		plant: useRef<ModelHandle>(null!),
-		shelf: useRef<ModelHandle>(null!),
-		phone: useRef<ModelHandle>(null!),
-		cube1: useRef<ModelHandle>(null!),
-	};
-
+	// Each model's ModelHandle.location resolves to exactly its `position` prop
+	// (see BaseModel), so the look-at targets are derived statically here instead
+	// of reading model refs during render.
 	const cameraConfigs: CameraConfig[] = useMemo(
 		() => [
 			// Home - looking at desk area
@@ -268,45 +248,29 @@ const BackgroundScene = () => {
 				mobilePosition: new Vector3(-3, 6, -5),
 				mobileLookAt: new Vector3(-3.5, 2, 3.5),
 			},
-			// About - looking at motorcycle
+			// About - looking at motorcycle (position [8, 0, 3])
 			{
 				position: new Vector3(0, 5, 0.5),
-				lookAt:
-					modelRefs.motorcycle.current?.location.add(
-						new Vector3(0, 4, 0),
-					) || new Vector3(0, 0, 0),
+				lookAt: new Vector3(8, 4, 3),
 				mobilePosition: new Vector3(-5, 5, -1),
-				mobileLookAt:
-					modelRefs.motorcycle.current?.location.add(
-						new Vector3(0, 6, 0),
-					) || new Vector3(0, 0, 0),
+				mobileLookAt: new Vector3(8, 6, 3),
 			},
-			// Experience - looking computer setup
+			// Experience - looking at monitor (position [-3.5, 2.85, 4.2])
 			{
 				position: new Vector3(0, 5, -1),
-				lookAt:
-					modelRefs.monitor.current?.location.clone() ||
-					new Vector3(0, 0, 0),
+				lookAt: new Vector3(-3.5, 2.85, 4.2),
 			},
-			// Portfolio - looking at shelf
+			// Portfolio - looking at shelf (position [-6, 5, 2.5])
 			{
 				position: new Vector3(-3, 6, 1.5),
-				lookAt:
-					modelRefs.shelf.current?.location.add(
-						new Vector3(0, 1, 0),
-					) || new Vector3(0, 0, 0),
+				lookAt: new Vector3(-6, 6, 2.5),
 				mobilePosition: new Vector3(-3, 6, 2),
-				mobileLookAt:
-					modelRefs.shelf.current?.location.add(
-						new Vector3(0, 1, -0.2),
-					) || new Vector3(0, 0, 0),
+				mobileLookAt: new Vector3(-6, 6, 2.3),
 			},
-			// Contact - looking at phone
+			// Contact - looking at phone (position [-1.1, 2.85, 3])
 			{
 				position: new Vector3(-1.1, 3.4, 3),
-				lookAt:
-				modelRefs.phone.current?.location.clone() ||
-					new Vector3(0, 0, 0),
+				lookAt: new Vector3(-1.1, 2.85, 3),
 			},
 			// Gallery - zoomed into monitor
 			{
@@ -316,7 +280,7 @@ const BackgroundScene = () => {
 				mobileLookAt: new Vector3(-3.48, 4.35, 4.2),
 			},
 		],
-		[isAssetsLoading, isFullyLoaded],
+		[],
 	);
 
 	return (
@@ -370,7 +334,6 @@ const BackgroundScene = () => {
 
 					{/* About */}
 					<Motorcycle
-						ref={modelRefs.motorcycle}
 						position={[8, 0, 3]}
 						rotation={[0, -0.1 * Math.PI, -0.05 * Math.PI]}
 						// onFrame={(mesh) => {
@@ -382,7 +345,6 @@ const BackgroundScene = () => {
 
 					{/* Portfolio */}
 					<Desk
-						ref={modelRefs.computer}
 						position={[-3.5, 0, 3.5]}
 						scale={[3, 3, 3]}
 						rotation={[0, 0.5 * Math.PI, 0]}
@@ -392,7 +354,6 @@ const BackgroundScene = () => {
 						suspense={true}
 					/>
 					<Monitor
-						ref={modelRefs.monitor}
 						position={[-3.5, 2.85, 4.2]}
 						rotation={[0, 0.5 * Math.PI, 0]}
 						scale={[0.04, 0.04, 0.04]}
@@ -478,7 +439,6 @@ const BackgroundScene = () => {
 						</group>
 					</Monitor>
 					<Keyboard
-						ref={modelRefs.keyboard}
 						position={[-2.9, 2.85, 2.9]}
 						rotation={[0, -0.57 * Math.PI, 0]}
 						scale={[0.006, 0.006, 0.006]}
@@ -488,7 +448,6 @@ const BackgroundScene = () => {
 						suspense={true}
 					/>
 					<Mouse
-						ref={modelRefs.mouse}
 						position={[-4.5, 3, 2.9]}
 						rotation={[0, 1.1 * Math.PI, 0]}
 						scale={[0.004, 0.004, 0.004]}
@@ -498,7 +457,6 @@ const BackgroundScene = () => {
 						suspense={true}
 					/>
 					<Chair
-						ref={modelRefs.chair}
 						position={[-4, 0, 0]}
 						rotation={[0, 0.3 * Math.PI, 0]}
 						scale={[4, 4, 4]}
@@ -508,7 +466,6 @@ const BackgroundScene = () => {
 						suspense={true}
 					/>
 					<Plant
-						ref={modelRefs.plant}
 						position={[-1, 3.85, 4]}
 						rotation={[0, 0 * Math.PI, 0]}
 						scale={[1, 1, 1]}
@@ -518,7 +475,6 @@ const BackgroundScene = () => {
 						suspense={true}
 					/>
 					<Shelf
-						ref={modelRefs.shelf}
 						position={[-6, 5, 2.5]}
 						rotation={[0, 0 * Math.PI, 0]}
 						size={[1, 1, 1]}
@@ -549,7 +505,6 @@ const BackgroundScene = () => {
 						onNavigate={navigate}
 					/>
 					<Phone
-						ref={modelRefs.phone}
 						position={[-1.1, 2.85, 3]}
 						rotation={[0.5 * Math.PI, 1 * Math.PI, -0.1 * Math.PI]}
 						scale={[0.8, 0.8, 0.8]}

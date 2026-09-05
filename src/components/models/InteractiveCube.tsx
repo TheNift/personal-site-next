@@ -56,6 +56,8 @@ export function InteractiveCube({
 	// Reset hover when camera moves away
 	useEffect(() => {
 		if (cameraPosition !== 3 || location.pathname !== '/portfolio') {
+			// Clear hover state when the camera/route navigates away from this item.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setHover(false);
 			document.body.style.cursor = 'auto';
 		}

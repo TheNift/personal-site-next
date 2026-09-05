@@ -43,19 +43,19 @@ const getBrowserLanguage = (): Language => {
 	return 'eng';
 };
 
-const mergeDeep = (base: any, override: any): any => {
+type MergeableRecord = Record<string, unknown>;
+
+const isPlainObject = (value: unknown): value is MergeableRecord =>
+	typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const mergeDeep = (base: unknown, override: unknown): unknown => {
 	if (override === undefined || override === null) return base;
 
-	if (
-		typeof base !== 'object' ||
-		typeof override !== 'object' ||
-		Array.isArray(base) ||
-		Array.isArray(override)
-	) {
+	if (!isPlainObject(base) || !isPlainObject(override)) {
 		return override;
 	}
 
-	const result = { ...base };
+	const result: MergeableRecord = { ...base };
 
 	Object.keys(override).forEach((key) => {
 		const baseValue = base[key];
@@ -85,12 +85,16 @@ export const LanguageProvider: React.FC<{
 	const [language, setLanguage] = useState<Language>('eng');
 
 	useEffect(() => {
+		// localStorage / navigator are client-only, so the persisted language
+		// preference can only be applied after mount.
 		const stored = localStorage.getItem('preferred-language') as Language;
+		/* eslint-disable react-hooks/set-state-in-effect */
 		if (stored === 'eng' || stored === 'viet') {
 			setLanguage(stored);
 		} else {
 			setLanguage(getBrowserLanguage());
 		}
+		/* eslint-enable react-hooks/set-state-in-effect */
 	}, []);
 
 	useEffect(() => {

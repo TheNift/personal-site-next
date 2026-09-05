@@ -36,7 +36,7 @@ function CameraSetup() {
 	return null;
 }
 
-export const SpinningMaxwell = memo(() => {
+export const SpinningMaxwell = memo(function SpinningMaxwell() {
 	const { strings } = useLanguage();
 	return (
 		<mesh>

@@ -43,7 +43,7 @@ function AboutCard({
 	index,
 }: {
 	title: string;
-	items: any;
+	items: string[] | Record<string, string | { title: string; value: string }>;
 	index: number;
 }) {
 	if (Array.isArray(items)) {
@@ -143,6 +143,8 @@ function AgeDisplay({ value }: { value: string }) {
 	const [display, setDisplay] = useState<string | null>(null);
 
 	useEffect(() => {
+		// Depends on the current time, so it is computed client-side after mount.
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setDisplay(moment().diff(value, 'years', false).toString());
 	}, [value]);
 

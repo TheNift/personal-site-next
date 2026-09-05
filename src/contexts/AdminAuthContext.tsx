@@ -39,6 +39,8 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	useEffect(() => {
+		// Session validation against the server; result must flow back into state.
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		checkAuth();
 	}, [checkAuth, pathname]);
 
@@ -55,8 +57,11 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 				return { success: true };
 			}
 			return { success: false, error: data.error || 'Invalid password' };
-		} catch (err: any) {
-			return { success: false, error: err?.message || 'Login request failed' };
+		} catch (err) {
+			return {
+				success: false,
+				error: err instanceof Error ? err.message : 'Login request failed',
+			};
 		}
 	};
 

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { motion, useSpring, useTransform, AnimatePresence } from 'motion/react';
+import { motion, useSpring, useTransform } from 'motion/react';
 import type { MotionValue } from 'motion/react';
 import {
 	useCallback,
@@ -9,6 +9,7 @@ import {
 	useRef,
 	useEffect,
 	startTransition,
+	createElement,
 } from 'react';
 import { useLanguage } from '@contexts/LanguageContext';
 import ScrambleText from '@components/ScrambleText';
@@ -98,7 +99,7 @@ const WheelNavItem = memo(function WheelNavItem({
 		[0, 0.25, 0.6, 1.0, 0.6, 0.25, 0],
 	);
 
-	const Icon = getIcon(item.icon);
+	const iconComponent = getIcon(item.icon);
 
 	return (
 		<motion.div
@@ -113,7 +114,12 @@ const WheelNavItem = memo(function WheelNavItem({
 			className={`wheel-nav-item ${isActive ? 'wheel-nav-item--active' : ''}`}
 			onClick={() => onItemClick(itemIndex)}
 		>
-			{Icon && <Icon size={isActive ? 20 : 16} strokeWidth={1.5} className='shrink-0' />}
+			{iconComponent &&
+				createElement(iconComponent, {
+					size: isActive ? 20 : 16,
+					strokeWidth: 1.5,
+					className: 'shrink-0',
+				})}
 			<Link
 				href={item.to}
 				onClick={(e) => {
@@ -342,7 +348,7 @@ const MobileWheelNavItem = memo(function MobileWheelNavItem({
 		[0, 0.25, 0.6, 1.0, 0.6, 0.25, 0],
 	);
 
-	const Icon = getIcon(item.icon);
+	const iconComponent = getIcon(item.icon);
 
 	return (
 		<motion.div
@@ -357,7 +363,12 @@ const MobileWheelNavItem = memo(function MobileWheelNavItem({
 			className={`mobile-wheel-item ${isActive ? 'mobile-wheel-item--active' : ''}`}
 			onClick={() => onItemClick(itemIndex)}
 		>
-			{Icon && <Icon size={isActive ? 20 : 16} strokeWidth={1.5} className='shrink-0' />}
+			{iconComponent &&
+				createElement(iconComponent, {
+					size: isActive ? 20 : 16,
+					strokeWidth: 1.5,
+					className: 'shrink-0',
+				})}
 			<Link
 				href={item.to}
 				onClick={(e) => {

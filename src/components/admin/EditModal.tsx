@@ -24,6 +24,8 @@ export default function EditModal({ image, isOpen, onClose, onSuccess }: EditMod
 
 	useEffect(() => {
 		if (image) {
+			// Re-seed the form fields whenever a different image is opened.
+			/* eslint-disable react-hooks/set-state-in-effect */
 			setCameraName(image.camera_name || '');
 			setLocation(image.location || '');
 			setDate(image.date || '');
@@ -32,6 +34,7 @@ export default function EditModal({ image, isOpen, onClose, onSuccess }: EditMod
 			setTitle(image.title || '');
 			setDescription(image.description || '');
 			setError(null);
+			/* eslint-enable react-hooks/set-state-in-effect */
 		}
 	}, [image]);
 
@@ -65,8 +68,8 @@ export default function EditModal({ image, isOpen, onClose, onSuccess }: EditMod
 			} else {
 				setError(data.error || 'Failed to update metadata');
 			}
-		} catch (err: any) {
-			setError(err?.message || 'Network error while updating metadata');
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Network error while updating metadata');
 		} finally {
 			setSaving(false);
 		}

@@ -42,7 +42,7 @@ const checkHardwareAcceleration = () => {
 			}
 		}
 		return true;
-	} catch (e) {
+	} catch {
 		return false;
 	}
 };
@@ -58,9 +58,13 @@ function GlobalUI({ children }: { children: ReactNode }) {
 		const hasAccel = checkHardwareAcceleration();
 		cachedHasAcceleration = hasAccel;
 		cachedMounted = true;
+		// One-time client capability probe; WebGL renderer info is unavailable
+		// during SSR, so this necessarily runs after mount.
+		/* eslint-disable react-hooks/set-state-in-effect */
 		setHasAcceleration(hasAccel);
 		if (!hasAccel) setIsAssetsLoading(false);
 		setMounted(true);
+		/* eslint-enable react-hooks/set-state-in-effect */
 	}, [setIsAssetsLoading]);
 
 	const isHome = pathname === '/';

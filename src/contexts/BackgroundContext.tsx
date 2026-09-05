@@ -45,6 +45,8 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	useLayoutEffect(() => {
 		if (cachedAssetsLoaded || sessionStorage.getItem('assets-loaded') === 'true') {
 			cachedAssetsLoaded = true;
+			// sessionStorage is client-only; restore the "already loaded" state.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setIsAssetsLoadingRaw(false);
 		}
 	}, []);
@@ -103,6 +105,8 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 	}, [pathname, strings.ui?.nav, setCurrentPageIndex, setCameraPosition]);
 
 	useEffect(() => {
+		// Keep the wheel-nav index and camera position in sync with the route.
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		updatePageIndex();
 	}, [updatePageIndex]);
 

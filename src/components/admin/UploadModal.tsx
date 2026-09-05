@@ -71,8 +71,8 @@ export default function UploadModal({ isOpen, onClose, onSuccess }: UploadModalP
 			} else {
 				setError(data.error || 'Failed to upload photo');
 			}
-		} catch (err: any) {
-			setError(err?.message || 'Network error while uploading');
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Network error while uploading');
 		} finally {
 			setUploading(false);
 		}

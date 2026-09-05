@@ -729,8 +729,8 @@ async function handleAdminGalleryUpload(request: Request, env: Env): Promise<Res
 		const title = (formData.get("title") as string | null) || "";
 		const description = (formData.get("description") as string | null) || "";
 
-		let originalName = file.name || "image.jpg";
-		let safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+		const originalName = file.name || "image.jpg";
+		const safeName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
 		let key = safeName;
 		const existing = await env.GALLERY_BUCKET.head(key);
 		if (existing) {
@@ -771,7 +771,7 @@ async function handleAdminGalleryUpload(request: Request, env: Env): Promise<Res
 		if (env.IMAGES) {
 			try {
 				const result = await env.IMAGES
-					.input(new Uint8Array(arrayBuffer) as any)
+					.input(new Blob([arrayBuffer]).stream())
 					.transform({ width: THUMBNAIL_WIDTH })
 					.output({ format: THUMBNAIL_FORMAT, quality: THUMBNAIL_QUALITY });
 				const resized = result.response();
@@ -800,8 +800,9 @@ async function handleAdminGalleryUpload(request: Request, env: Env): Promise<Res
 		return new Response(JSON.stringify({ success: true, image }), {
 			headers: { "Content-Type": "application/json" },
 		});
-	} catch (err: any) {
-		return new Response(JSON.stringify({ error: err?.message || "Upload failed" }), {
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Upload failed";
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
@@ -825,7 +826,7 @@ async function handleAdminGalleryUpdateMetadata(key: string, request: Request, e
 			});
 		}
 
-		const body = (await request.json()) as Record<string, any>;
+		const body = (await request.json()) as Record<string, unknown>;
 		const customMetadata: Record<string, string> = { ...(existing.customMetadata || {}) };
 
 		if ("camera_name" in body) {
@@ -881,8 +882,9 @@ async function handleAdminGalleryUpdateMetadata(key: string, request: Request, e
 		return new Response(JSON.stringify({ success: true, image }), {
 			headers: { "Content-Type": "application/json" },
 		});
-	} catch (err: any) {
-		return new Response(JSON.stringify({ error: err?.message || "Update failed" }), {
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Update failed";
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
@@ -903,15 +905,16 @@ async function handleAdminGalleryDelete(key: string, request: Request, env: Env)
 		return new Response(JSON.stringify({ success: true }), {
 			headers: { "Content-Type": "application/json" },
 		});
-	} catch (err: any) {
-		return new Response(JSON.stringify({ error: err?.message || "Delete failed" }), {
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Delete failed";
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { "Content-Type": "application/json" },
 		});
 	}
 }
 
-export default {
+const worker = {
 	async fetch(request: Request, env: Env): Promise<Response> {
 		const url = new URL(request.url);
 
@@ -1039,4 +1042,6 @@ export default {
 		return applyHeaderRules(response, url.pathname, isRsc);
 	},
 };
+
+export default worker;
 

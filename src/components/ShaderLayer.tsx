@@ -1,18 +1,19 @@
 'use client';
 import { WebGLRenderTarget, NearestFilter } from 'three';
+import type { IUniform } from 'three';
 import { useRef, useEffect } from 'react';
-import { extend, useThree, useFrame } from '@react-three/fiber';
+import { useThree, useFrame } from '@react-three/fiber';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 export interface ShaderLayerProps {
 	shader: {
-		uniforms: any;
+		uniforms: Record<string, IUniform>;
 		vertexShader: string;
 		fragmentShader: string;
 	};
-	onUpdate?: (uniforms: any) => void;
+	onUpdate?: (uniforms: Record<string, IUniform>) => void;
 }
 
 export const ShaderLayer: React.FC<ShaderLayerProps> = ({

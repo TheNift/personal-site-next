@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from '@contexts/LanguageContext';
+import type { StringsType } from '@contexts/LanguageContext';
 import Page from '@components/Page';
 import { motion } from 'motion/react';
 import ScrambleText from '@components/ScrambleText';
@@ -45,7 +46,9 @@ function ExperienceItems() {
 		</>
 	);
 }
-function ExperienceItem({ item }: { item: any }) {
+type ExperienceEntry = StringsType['experience']['items'][number];
+
+function ExperienceItem({ item }: { item: ExperienceEntry }) {
 	const { language } = useLanguage();
 	return (
 		<div className="flex flex-col justify-start align-start not-last:mb-[50px]">

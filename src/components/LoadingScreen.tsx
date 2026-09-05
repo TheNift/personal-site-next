@@ -10,6 +10,8 @@ const LoadingScreen = () => {
 	const [randomMessage, setRandomMessage] = useState(messages[0] || '');
 
 	useEffect(() => {
+		// Client-only randomness picked after mount to avoid an SSR hydration mismatch.
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		setRandomMessage(messages[Math.floor(Math.random() * messages.length)]);
 	}, [messages]);
 	const { loadingProgress } = useBackground();

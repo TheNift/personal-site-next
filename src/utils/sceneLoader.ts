@@ -20,7 +20,7 @@ export const preloadThreeJSAssets = async (
 			itemsLoaded++;
 			const progress = (itemsLoaded / totalItems) * 100;
 			onProgress(progress);
-		} catch (error: any) {
+		} catch (error) {
 			console.error(`Failed to preload ${path}:`, error);
 			itemsLoaded++;
 			const progress = (itemsLoaded / totalItems) * 100;

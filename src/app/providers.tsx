@@ -3,7 +3,7 @@
 import { BackgroundProvider } from '@/contexts/BackgroundContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { UIProvider } from '@/contexts/UIContext';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 
 import type { StringsBundle } from '@/contexts/LanguageContext';
 

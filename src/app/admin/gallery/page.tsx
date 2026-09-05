@@ -55,8 +55,8 @@ export default function AdminGalleryPage() {
 			}
 			const data = (await res.json()) as GalleryImage[];
 			setImages(data);
-		} catch (err: any) {
-			setError(err?.message || 'Error loading gallery');
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Error loading gallery');
 		} finally {
 			setLoading(false);
 		}
@@ -64,11 +64,14 @@ export default function AdminGalleryPage() {
 
 	useEffect(() => {
 		if (isAuthenticated) {
+			// fetchGallery() sets loading/error state synchronously; that is the
+			// intended behaviour for a one-shot data fetch, not a derived-state cascade.
+			// eslint-disable-next-line react-hooks/set-state-in-effect
 			fetchGallery();
 		}
 	}, [isAuthenticated, fetchGallery]);
 
-	const handleUploadSuccess = (newImage: GalleryImage) => {
+	const handleUploadSuccess = (_newImage: GalleryImage) => {
 		fetchGallery();
 	};
 
@@ -92,8 +95,8 @@ export default function AdminGalleryPage() {
 				const data = (await res.json()) as { error?: string };
 				alert(data.error || 'Failed to delete image');
 			}
-		} catch (err: any) {
-			alert(err?.message || 'Network error while deleting image');
+		} catch (err) {
+			alert(err instanceof Error ? err.message : 'Network error while deleting image');
 		} finally {
 			setIsDeleting(false);
 		}

@@ -18,7 +18,11 @@ export default function GameConfirmationModal({
 }: GameConfirmationModalProps) {
 	const { strings } = useLanguage();
 
-	const gameStrings = (strings as any)?.game?.confirmation;
+	const gameStrings = (
+		strings as unknown as {
+			game?: { confirmation?: { title?: string; yes?: string; no?: string } };
+		}
+	)?.game?.confirmation;
 	const title = gameStrings?.title || 'Enter game?';
 	const yesText = gameStrings?.yes || 'Yes';
 	const noText = gameStrings?.no || 'No';
