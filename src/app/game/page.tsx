@@ -80,12 +80,14 @@ export default function GamePage() {
 	return (
 		<div className="w-full h-full relative bg-[#0d0c09] overflow-hidden select-none">
 			{/* Top-left navigation back button */}
-			<Link
-				href="/"
-				className="absolute top-4 left-4 z-50 text-white/60 hover:text-white transition-colors bg-black/60 hover:bg-black/80 px-4 py-2 rounded-lg font-mono text-xs backdrop-blur-md border border-white/10 flex items-center gap-1.5 shadow-lg"
-			>
-				&larr; <span>{homeText}</span>
-			</Link>
+			{!hasEntered && (
+				<Link
+					href="/"
+					className="absolute top-4 left-4 z-50 text-white/60 hover:text-white transition-colors bg-black/60 hover:bg-black/80 px-4 py-2 rounded-lg font-mono text-xs backdrop-blur-md border border-white/10 flex items-center gap-1.5 shadow-lg"
+				>
+					&larr; <span>{homeText}</span>
+				</Link>
+			)}
 
 			{/* Confirmation modal before entering the game */}
 			<GameConfirmationModal

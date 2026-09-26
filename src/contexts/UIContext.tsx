@@ -2,7 +2,9 @@
 
 import React, {
 	createContext,
+	useCallback,
 	useContext,
+	useMemo,
 	useState,
 	type ReactNode,
 } from 'react';
@@ -25,25 +27,20 @@ export const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 	const [isContentHidden, setIsContentHidden] = useState(false);
 	const [isNavHidden, setIsNavHidden] = useState(false);
 
-	const setContentHidden = (hidden: boolean) => {
-		setIsContentHidden(hidden);
-	};
-
-	const setNavHidden = (hidden: boolean) => {
-		setIsNavHidden(hidden);
-	};
-
-	const toggleContentHidden = () => {
+	const toggleContentHidden = useCallback(() => {
 		setIsContentHidden((prev) => !prev);
-	};
+	}, []);
 
-	const value = {
-		isContentHidden,
-		setContentHidden,
-		toggleContentHidden,
-		isNavHidden,
-		setNavHidden,
-	};
+	const value = useMemo(
+		() => ({
+			isContentHidden,
+			setContentHidden: setIsContentHidden,
+			toggleContentHidden,
+			isNavHidden,
+			setNavHidden: setIsNavHidden,
+		}),
+		[isContentHidden, isNavHidden, toggleContentHidden]
+	);
 
 	return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };
