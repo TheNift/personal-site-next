@@ -221,11 +221,7 @@ const english = {
 		ogImage: '/images/meta_image.webp',
 	},
 	game: {
-		confirmation: {
-			title: 'Enter game?',
-			yes: 'Yes',
-			no: 'No',
-		},
+		play: 'Play?',
 	},
 };
 
@@ -439,11 +435,7 @@ const vietnamese = {
 		}
 	},
 	game: {
-		confirmation: {
-			title: 'Vào trò chơi?',
-			yes: 'Có',
-			no: 'Không',
-		},
+		play: 'Chơi?',
 	},
 };
 

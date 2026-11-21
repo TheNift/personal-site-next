@@ -1,4 +1,5 @@
 export * from './ArcadeMachine';
+export * from './ArcadePlayPrompt';
 export * from './BaseModel';
 export * from './Chair';
 export * from './ContactForm3D';

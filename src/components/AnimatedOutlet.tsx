@@ -11,13 +11,7 @@ function AnimatedOutlet({ children }: { children: ReactNode }) {
 				isContentHidden ? 'opacity-0' : 'opacity-100'
 			}`}
 		>
-			<Suspense
-				fallback={
-					<div className='w-full h-full flex items-center justify-center'>
-						Loading...
-					</div>
-				}
-			>
+			<Suspense fallback={null}>
 				{children}
 			</Suspense>
 		</div>

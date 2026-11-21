@@ -13,8 +13,8 @@ interface UIContextType {
 	isContentHidden: boolean;
 	setContentHidden: (hidden: boolean) => void;
 	toggleContentHidden: () => void;
-	isNavHidden: boolean;
-	setNavHidden: (hidden: boolean) => void;
+	isGameRunning: boolean;
+	setGameRunning: (running: boolean) => void;
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
@@ -25,7 +25,7 @@ interface UIProviderProps {
 
 export const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 	const [isContentHidden, setIsContentHidden] = useState(false);
-	const [isNavHidden, setIsNavHidden] = useState(false);
+	const [isGameRunning, setIsGameRunning] = useState(false);
 
 	const toggleContentHidden = useCallback(() => {
 		setIsContentHidden((prev) => !prev);
@@ -36,10 +36,10 @@ export const UIProvider: React.FC<UIProviderProps> = ({ children }) => {
 			isContentHidden,
 			setContentHidden: setIsContentHidden,
 			toggleContentHidden,
-			isNavHidden,
-			setNavHidden: setIsNavHidden,
+			isGameRunning,
+			setGameRunning: setIsGameRunning,
 		}),
-		[isContentHidden, isNavHidden, toggleContentHidden]
+		[isContentHidden, isGameRunning, toggleContentHidden]
 	);
 
 	return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

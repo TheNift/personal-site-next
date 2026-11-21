@@ -15,6 +15,7 @@ import { Vector3, Color } from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import {
 	ArcadeMachine,
+	ArcadePlayPrompt,
 	Motorcycle,
 	Desk,
 	Monitor,
@@ -29,6 +30,7 @@ import {
 	ContactForm3D,
 } from '@models';
 import { SpinningMaxwell } from '@components/SpinningMaxwell';
+import { useHomeHotspot, HomeHotspotTooltip } from '@components/HomeHotspot';
 import { useBackground } from '@contexts/BackgroundContext';
 import { useLanguage } from '@contexts/LanguageContext';
 import { bayer8x8Shader } from '@components/shaders';
@@ -186,7 +188,6 @@ function SceneReadyDetector({ onReady }: { onReady: () => void }) {
 
 const BackgroundScene = () => {
 	const [isSceneReady, setIsSceneReady] = useState(false);
-	const [monitorHovered, setMonitorHovered] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isGalleryVisible, setIsGalleryVisible] = useState(false);
 
@@ -207,12 +208,21 @@ const BackgroundScene = () => {
 		[router],
 	);
 
+	const navLabel = (to: string) =>
+		strings.ui.nav.find((item) => item.to === to)?.text ?? '';
+	const galleryHotspot = useHomeHotspot('/gallery', navigate);
+	const aboutHotspot = useHomeHotspot('/about', navigate);
+	const contactHotspot = useHomeHotspot('/contact', navigate);
+	const gameHotspot = useHomeHotspot('/game', navigate);
+	const portfolioHotspot = useHomeHotspot('/portfolio', navigate);
+
 	useEffect(() => {
 		router.prefetch('/about');
 		router.prefetch('/experience');
 		router.prefetch('/portfolio');
 		router.prefetch('/contact');
 		router.prefetch('/gallery');
+		router.prefetch('/game');
 	}, [router]);
 	const pathname = usePathname();
 	const location = { pathname: pathname || '/' };
@@ -287,6 +297,12 @@ const BackgroundScene = () => {
 				mobilePosition: new Vector3(-3.48, 4.35, 2.5),
 				mobileLookAt: new Vector3(-3.48, 4.35, 4.2),
 			},
+			{
+				position: new Vector3(2.27, 3.45, 4.24),
+				lookAt: new Vector3(2.82, 3.4, 5.95),
+				mobilePosition: new Vector3(2.02, 3.45, 3.48),
+				mobileLookAt: new Vector3(2.82, 3.4, 5.95),
+			},
 		],
 		[],
 	);
@@ -349,6 +365,7 @@ const BackgroundScene = () => {
 						// }}
 						receiveShadow={true}
 						suspense={true}
+						{...aboutHotspot.handlers}
 					/>
 					<ArcadeMachine
 						position={[3, 0, 6.5]}
@@ -357,7 +374,10 @@ const BackgroundScene = () => {
 						receiveShadow={true}
 						castShadow={true}
 						suspense={true}
-					/>
+						{...gameHotspot.handlers}
+					>
+						{location.pathname === '/game' && <ArcadePlayPrompt />}
+					</ArcadeMachine>
 
 					{/* Portfolio */}
 					<Desk
@@ -386,44 +406,17 @@ const BackgroundScene = () => {
 								<group rotation={[-0.06 * Math.PI, 0, 0]}>
 									
 									{/* Hitbox */}
-									<mesh
-										onPointerOver={(e) => {
-											e.stopPropagation();
-											if (cameraPosition === 0 && location.pathname === '/') {
-												setMonitorHovered(true);
-												document.body.style.cursor = 'pointer';
-											}
-										}}
-										onPointerOut={() => {
-											setMonitorHovered(false);
-											document.body.style.cursor = 'auto';
-										}}
-										onClick={(e) => {
-											e.stopPropagation();
-											if (cameraPosition === 0 && location.pathname === '/') {
-												navigate('/gallery');
-											}
-										}}
-									>
+									<mesh {...galleryHotspot.handlers}>
 										<boxGeometry args={[55, 35, 2.5]} />
 										<meshBasicMaterial visible={false} />
 									</mesh>
 
 									{/* Gallery Tooltip */}
-									<group position={[0, 23.75, 0]}>
-										<Html>
-											<div
-												className='pointer-events-none bg-black/80 text-white px-2 py-1 rounded text-sm whitespace-nowrap'
-												style={{
-													opacity: monitorHovered ? 1 : 0,
-													transition: 'opacity 150ms ease',
-													transform: 'translateX(-50%)',
-												}}
-											>
-												Gallery
-											</div>
-										</Html>
-									</group>
+									<HomeHotspotTooltip
+										position={[0, 23.75, 0]}
+										label={navLabel('/gallery')}
+										isVisible={galleryHotspot.isHovered}
+									/>
 
 									{/* Screen Content */}
 									<SpinningMaxwell />
@@ -490,36 +483,38 @@ const BackgroundScene = () => {
 						castShadow={true}
 						suspense={true}
 					/>
-					<Shelf
-						position={[-6, 5, 2.5]}
-						rotation={[0, 0 * Math.PI, 0]}
-						size={[1, 1, 1]}
-						scale={[1.2, 1, 1.2]}
-						color='white'
-						receiveShadow={true}
-						castShadow={true}
-						suspense={true}
-					/>
-					<InteractiveRay
-						position={[-6, 5.32, 2.9]}
-						rotation={[0, 1.5 * Math.PI, 0]}
-						scale={[0.75, 0.75, 0.75]}
-						label={strings.projects.personalSite.title}
-						slug={strings.projects.personalSite.slug}
-						onNavigate={navigate}
-					/>
-					<InteractiveGundamWing
-						position={[-6.3, 5.28, 1.6]}
-						rotation={[
-							0.05 * Math.PI,
-							0.5 * Math.PI,
-							-0.05 * Math.PI,
-						]}
-						scale={[0.3, 0.3, 0.3]}
-						label={strings.projects.p3Projects.title}
-						slug={strings.projects.p3Projects.slug}
-						onNavigate={navigate}
-					/>
+					<group {...portfolioHotspot.handlers}>
+						<Shelf
+							position={[-6, 5, 2.5]}
+							rotation={[0, 0 * Math.PI, 0]}
+							size={[1, 1, 1]}
+							scale={[1.2, 1, 1.2]}
+							color='white'
+							receiveShadow={true}
+							castShadow={true}
+							suspense={true}
+						/>
+						<InteractiveRay
+							position={[-6, 5.32, 2.9]}
+							rotation={[0, 1.5 * Math.PI, 0]}
+							scale={[0.75, 0.75, 0.75]}
+							label={strings.projects.personalSite.title}
+							slug={strings.projects.personalSite.slug}
+							onNavigate={navigate}
+						/>
+						<InteractiveGundamWing
+							position={[-6.3, 5.28, 1.6]}
+							rotation={[
+								0.05 * Math.PI,
+								0.5 * Math.PI,
+								-0.05 * Math.PI,
+							]}
+							scale={[0.3, 0.3, 0.3]}
+							label={strings.projects.p3Projects.title}
+							slug={strings.projects.p3Projects.slug}
+							onNavigate={navigate}
+						/>
+					</group>
 					<Phone
 						position={[-1.1, 2.85, 3]}
 						rotation={[0.5 * Math.PI, 1 * Math.PI, -0.1 * Math.PI]}
@@ -528,9 +523,30 @@ const BackgroundScene = () => {
 						receiveShadow={true}
 						castShadow={true}
 						suspense={true}
+						{...contactHotspot.handlers}
 					>
 						{location.pathname === '/contact' && <ContactForm3D />}
 					</Phone>
+					<HomeHotspotTooltip
+						position={[8, 2.6, 3]}
+						label={navLabel('/about')}
+						isVisible={aboutHotspot.isHovered}
+					/>
+					<HomeHotspotTooltip
+						position={[-1.1, 3.3, 3]}
+						label={navLabel('/contact')}
+						isVisible={contactHotspot.isHovered}
+					/>
+					<HomeHotspotTooltip
+						position={[2.85, 4.9, 6.2]}
+						label={navLabel('/game')}
+						isVisible={gameHotspot.isHovered}
+					/>
+					<HomeHotspotTooltip
+						position={[-6, 6.7, 2.3]}
+						label={navLabel('/portfolio')}
+						isVisible={portfolioHotspot.isHovered}
+					/>
 					<CameraController
 						cameraConfigs={cameraConfigs}
 						activeIndex={cameraPosition}

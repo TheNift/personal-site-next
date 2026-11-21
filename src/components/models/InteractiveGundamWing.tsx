@@ -32,6 +32,8 @@ export function InteractiveGundamWing({
 	const { cameraPosition } = useBackground();
 	const pathname = usePathname();
 	const location = { pathname: pathname || '/' };
+	const canInteract =
+		cameraPosition === 3 && location.pathname === '/portfolio';
 	const initialPos = useMemo(() => new Vector3(...position), [position]);
 	const targetPos = useMemo(() => new Vector3(), []);
 	const labelBaseOffset = 1.15;
@@ -66,8 +68,6 @@ export function InteractiveGundamWing({
 
 	useFrame((_, delta) => {
 		if (meshRef.current) {
-			const canInteract =
-				cameraPosition === 3 && location.pathname === '/portfolio';
 			const hoverOffset = new Vector3(2, 0.5, -1);
 			targetPos
 				.copy(initialPos)
@@ -111,7 +111,7 @@ export function InteractiveGundamWing({
 	});
 
 	useEffect(() => {
-		if (cameraPosition !== 3 || location.pathname !== '/portfolio') {
+		if (!canInteract) {
 			hoverRef.current = false;
 			if (tooltipRef.current) {
 				tooltipRef.current.style.opacity = '0';
@@ -119,7 +119,7 @@ export function InteractiveGundamWing({
 			tooltipVisibleRef.current = false;
 			document.body.style.cursor = 'auto';
 		}
-	}, [cameraPosition, location.pathname]);
+	}, [canInteract]);
 
 	return (
 		<group>
@@ -137,27 +137,20 @@ export function InteractiveGundamWing({
 					position[2],
 				]}
 				onPointerOver={(e) => {
+					if (!canInteract) return;
 					e.stopPropagation();
-					if (
-						cameraPosition === 3 &&
-						location.pathname === '/portfolio'
-					) {
-						hoverRef.current = true;
-						document.body.style.cursor = 'pointer';
-					}
+					hoverRef.current = true;
+					document.body.style.cursor = 'pointer';
 				}}
 				onPointerOut={() => {
+					if (!hoverRef.current) return;
 					hoverRef.current = false;
 					document.body.style.cursor = 'auto';
 				}}
 				onClick={(e) => {
+					if (!canInteract) return;
 					e.stopPropagation();
-					if (
-						cameraPosition === 3 &&
-						location.pathname === '/portfolio'
-					) {
-						onNavigate(`/portfolio/${slug}`);
-					}
+					onNavigate(`/portfolio/${slug}`);
 				}}
 			>
 				<boxGeometry args={hitboxSize} />

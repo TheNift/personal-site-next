@@ -71,10 +71,17 @@ function GlobalUI({ children }: { children: ReactNode }) {
 	const isPortfolio = pathname.startsWith('/portfolio');
 	const isContact = pathname === '/contact';
 	const isGallery = pathname === '/gallery';
+	const isGame = pathname === '/game';
 	const isAdmin = pathname.startsWith('/admin');
-	const isInteractive = mounted && (isHome || isPortfolio || isContact || isGallery);
-	const { isNavHidden } = useUI();
-	const hideGlobalNav = isNavHidden || isAdmin;
+	const { isGameRunning } = useUI();
+	const isInteractive =
+		mounted &&
+		(isHome ||
+			isPortfolio ||
+			isContact ||
+			isGallery ||
+			(isGame && !isGameRunning));
+	const hideGlobalNav = isGameRunning || isAdmin;
 
 	return (
 		<div className='h-screen w-screen relative bg-site-bg'>
@@ -126,15 +133,14 @@ function LoadingModal() {
 		<AnimatePresence>
 			{isAssetsLoading && (
 				<motion.div
-					initial={{ opacity: 0, y: 20 }}
+					initial={false}
 					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.2 }}
 					exit={{
 						opacity: 0,
 						y: 20,
 						transition: { delay: 0.5, duration: 0.3 },
 					}}
-					className='absolute z-30 bottom-0 left-1/2 -translate-x-1/2 pointer-events-none'
+					className='absolute z-30 bottom-0 left-1/2 -translate-x-1/2 pointer-events-none animate-loading-modal-in'
 				>
 					<LoadingScreen />
 				</motion.div>
