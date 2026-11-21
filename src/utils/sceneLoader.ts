@@ -1,19 +1,33 @@
-import { getAllAssetPaths } from './assetRegistry';
+import { getAllAssetPaths, getAllObjAssetPaths } from './assetRegistry';
 
 interface LoadingProgress {
 	(progress: number): void;
 }
 
+interface AssetPreloaders {
+	gltf: (path: string) => void;
+	obj: (path: string) => void;
+}
+
 export const preloadThreeJSAssets = async (
-	preload: (path: string) => void,
+	preloaders: AssetPreloaders,
 	onProgress: LoadingProgress
 ): Promise<void> => {
-	const assetPaths = getAllAssetPaths();
+	const assets = [
+		...getAllAssetPaths().map((path) => ({
+			path,
+			preload: preloaders.gltf,
+		})),
+		...getAllObjAssetPaths().map((path) => ({
+			path,
+			preload: preloaders.obj,
+		})),
+	];
 
 	let itemsLoaded = 0;
-	const totalItems = assetPaths.length;
+	const totalItems = assets.length;
 
-	const loadPromises = assetPaths.map(async (path, index) => {
+	const loadPromises = assets.map(async ({ path, preload }, index) => {
 		try {
 			await new Promise(resolve => setTimeout(resolve, index * 20)); // Feels bad, but staggering the loading to be nicer to webgl
 			preload(path);

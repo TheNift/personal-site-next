@@ -28,6 +28,9 @@ export interface BaseModelProps {
 	children?: ReactNode;
 	onFrame?: (mesh: AnimatableObject, delta: number) => void;
 	gltfPath?: string;
+	objPath?: string;
+	materialColors?: Record<string, string>;
+	emissiveMaterials?: string[];
 	suspense?: boolean;
 	fallback?: ReactNode;
 	onClick?: (event: ThreeEvent<MouseEvent>) => void;

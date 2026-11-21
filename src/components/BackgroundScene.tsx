@@ -7,12 +7,14 @@ import {
 	useCallback,
 	startTransition,
 } from 'react';
-import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { Canvas, useThree, useFrame, useLoader } from '@react-three/fiber';
 import { useGLTF, Html } from '@react-three/drei';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Vector3, Color } from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import {
+	ArcadeMachine,
 	Motorcycle,
 	Desk,
 	Monitor,
@@ -35,7 +37,13 @@ import { preloadThreeJSAssets } from '@/utils/sceneLoader';
 import GalleryView from '@views/GalleryView';
 
 export const preloadAssets = (onProgress: (progress: number) => void) =>
-	preloadThreeJSAssets(useGLTF.preload, onProgress);
+	preloadThreeJSAssets(
+		{
+			gltf: useGLTF.preload,
+			obj: (path) => useLoader.preload(OBJLoader, path),
+		},
+		onProgress,
+	);
 
 function LightSource() {
 	return (
@@ -340,6 +348,14 @@ const BackgroundScene = () => {
 						// 	mesh.rotation.y += 0.001;
 						// }}
 						receiveShadow={true}
+						suspense={true}
+					/>
+					<ArcadeMachine
+						position={[3, 0, 6.5]}
+						rotation={[0, 0.6 * Math.PI, 0]}
+						scale={[1.8, 1.8, 1.8]}
+						receiveShadow={true}
+						castShadow={true}
 						suspense={true}
 					/>
 

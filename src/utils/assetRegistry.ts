@@ -13,8 +13,18 @@ export const ASSETS = {
   gundamWing: '/models/gundam_wing.glb',
 } as const;
 
+export const OBJ_ASSETS = {
+	arcadeMachine: '/models/ArcadeMachine.obj',
+} as const;
+
 export type AssetKey = keyof typeof ASSETS;
+
+export type ObjAssetKey = keyof typeof OBJ_ASSETS;
 
 export const getAssetPath = (key: AssetKey): string => ASSETS[key];
 
+export const getObjAssetPath = (key: ObjAssetKey): string => OBJ_ASSETS[key];
+
 export const getAllAssetPaths = (): string[] => Object.values(ASSETS);
+
+export const getAllObjAssetPaths = (): string[] => Object.values(OBJ_ASSETS);
