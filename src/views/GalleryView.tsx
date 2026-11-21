@@ -77,7 +77,7 @@ function GalleryView() {
 
 	return (
 		<Page className='relative flex flex-col items-center justify-start pointer-events-auto overflow-hidden'>
-			<div className='w-full h-full flex flex-col items-center pt-0 md:pt-[24px] overflow-y-auto hidden-scrollbar'>
+			<div className='w-full h-full flex flex-col items-center pt-0 md:pt-6 overflow-y-auto hidden-scrollbar'>
 				{/* Header */}
 				<motion.div
 					initial={{ opacity: 0, y: -10 }}
@@ -92,7 +92,7 @@ function GalleryView() {
 
 				{/* Loading skeleton */}
 				{(loading || (!initialImagesLoaded && images.length > 0)) && (
-					<div className='gallery-grid w-full max-w-[1400px] px-4 md:px-8'>
+					<div className='gallery-grid w-full max-w-350 px-4 md:px-8'>
 						{Array.from({ length: 8 }).map((_, i) => (
 							<div
 								key={i}
@@ -128,7 +128,7 @@ function GalleryView() {
 				{/* Image grid */}
 				{!loading && images.length > 0 && (
 					<motion.div
-						className={`gallery-grid w-full lg:px-[200px] px-4 md:px-8 pb-8 ${initialImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
+						className={`gallery-grid w-full lg:px-50 px-4 md:px-8 pb-8 ${initialImagesLoaded ? '' : 'absolute opacity-0 pointer-events-none'}`}
 						variants={{
 							hidden: {},
 							visible: {

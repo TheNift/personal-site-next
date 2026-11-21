@@ -14,6 +14,13 @@ interface GalleryLightboxProps {
 
 const emptySubscribe = () => () => {};
 
+const wrapIndex = (index: number, length: number) => ((index % length) + length) % length;
+
+const preloadImage = (image: GalleryImage) => {
+	const img = new Image();
+	img.src = `/api/gallery/image/${encodeURIComponent(image.key)}`;
+};
+
 function GalleryLightbox({
 	images,
 	currentIndex,
@@ -21,8 +28,9 @@ function GalleryLightbox({
 	onNavigate,
 }: GalleryLightboxProps) {
 	const image = images[currentIndex];
-	const hasPrev = currentIndex > 0;
-	const hasNext = currentIndex < images.length - 1;
+	const canNavigate = images.length > 1;
+	const previousImageIndex = wrapIndex(currentIndex - 1, images.length);
+	const nextImageIndex = wrapIndex(currentIndex + 1, images.length);
 	const backdropRef = useRef<HTMLDivElement>(null);
 	const [imageLoaded, setImageLoaded] = useState(false);
 	const [prevIndex, setPrevIndex] = useState(currentIndex);
@@ -35,30 +43,25 @@ function GalleryLightbox({
 
 	// Preload adjacent images on mount and on index change
 	useEffect(() => {
-		const preload = (index: number) => {
-			if (index >= 0 && index < images.length) {
-				const img = new Image();
-				img.src = `/api/gallery/image/${encodeURIComponent(images[index].key)}`;
-			}
-		};
-		preload(currentIndex - 1);
-		preload(currentIndex + 1);
-	}, [currentIndex, images]);
+		if (!canNavigate) return;
+		preloadImage(images[previousImageIndex]);
+		preloadImage(images[nextImageIndex]);
+	}, [canNavigate, previousImageIndex, nextImageIndex, images]);
 
 	// Keyboard navigation
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				onClose();
-			} else if (e.key === 'ArrowLeft' && hasPrev) {
-				onNavigate(currentIndex - 1);
-			} else if (e.key === 'ArrowRight' && hasNext) {
-				onNavigate(currentIndex + 1);
+			} else if (e.key === 'ArrowLeft' && canNavigate) {
+				onNavigate(previousImageIndex);
+			} else if (e.key === 'ArrowRight' && canNavigate) {
+				onNavigate(nextImageIndex);
 			}
 		};
 		window.addEventListener('keydown', handleKeyDown);
 		return () => window.removeEventListener('keydown', handleKeyDown);
-	}, [onClose, onNavigate, currentIndex, hasPrev, hasNext]);
+	}, [onClose, onNavigate, canNavigate, previousImageIndex, nextImageIndex]);
 
 	// Click outside to close
 	const handleBackdropClick = useCallback(
@@ -72,17 +75,11 @@ function GalleryLightbox({
 
 	// Preload on hover of nav arrows
 	const handlePrevHover = useCallback(() => {
-		if (currentIndex > 1) {
-			const img = new Image();
-			img.src = `/api/gallery/image/${encodeURIComponent(images[currentIndex - 2].key)}`;
-		}
+		preloadImage(images[wrapIndex(currentIndex - 2, images.length)]);
 	}, [currentIndex, images]);
 
 	const handleNextHover = useCallback(() => {
-		if (currentIndex < images.length - 2) {
-			const img = new Image();
-			img.src = `/api/gallery/image/${encodeURIComponent(images[currentIndex + 2].key)}`;
-		}
+		preloadImage(images[wrapIndex(currentIndex + 2, images.length)]);
 	}, [currentIndex, images]);
 
 	const formattedDate = image.date
@@ -156,12 +153,12 @@ function GalleryLightbox({
 			</div>
 
 			{/* Navigation arrows */}
-			{hasPrev && (
+			{canNavigate && (
 				<button
 					className='lightbox-nav lightbox-nav-prev'
 					onClick={(e) => {
 						e.stopPropagation();
-						onNavigate(currentIndex - 1);
+						onNavigate(previousImageIndex);
 					}}
 					onMouseEnter={handlePrevHover}
 					aria-label='Previous image'
@@ -171,12 +168,12 @@ function GalleryLightbox({
 					</svg>
 				</button>
 			)}
-			{hasNext && (
+			{canNavigate && (
 				<button
 					className='lightbox-nav lightbox-nav-next'
 					onClick={(e) => {
 						e.stopPropagation();
-						onNavigate(currentIndex + 1);
+						onNavigate(nextImageIndex);
 					}}
 					onMouseEnter={handleNextHover}
 					aria-label='Next image'
