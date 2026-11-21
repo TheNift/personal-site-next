@@ -7,6 +7,7 @@ import React, {
 	useEffect,
 	useLayoutEffect,
 	useCallback,
+	useMemo,
 } from 'react';
 import type { ReactNode } from 'react';
 import { useLanguage } from '@contexts/LanguageContext';
@@ -110,21 +111,35 @@ export const BackgroundProvider: React.FC<{ children: ReactNode }> = ({
 		updatePageIndex();
 	}, [updatePageIndex]);
 
+	const value = useMemo(
+		() => ({
+			cameraPosition,
+			setCameraPosition,
+			currentPageIndex,
+			setCurrentPageIndex,
+			isAssetsLoading,
+			setIsAssetsLoading,
+			loadingProgress,
+			setLoadingProgress,
+			isCameraMoving,
+			setIsCameraMoving,
+		}),
+		[
+			cameraPosition,
+			setCameraPosition,
+			currentPageIndex,
+			setCurrentPageIndex,
+			isAssetsLoading,
+			setIsAssetsLoading,
+			loadingProgress,
+			setLoadingProgress,
+			isCameraMoving,
+			setIsCameraMoving,
+		],
+	);
+
 	return (
-		<BackgroundContext.Provider
-			value={{
-				cameraPosition,
-				setCameraPosition,
-				currentPageIndex,
-				setCurrentPageIndex,
-				isAssetsLoading,
-				setIsAssetsLoading,
-				loadingProgress,
-				setLoadingProgress,
-				isCameraMoving,
-				setIsCameraMoving,
-			}}
-		>
+		<BackgroundContext.Provider value={value}>
 			{children}
 		</BackgroundContext.Provider>
 	);

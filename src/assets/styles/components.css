@@ -40,17 +40,21 @@
     overflow: hidden;
   }
 
+  .wheel-nav-slot {
+    transform-origin: left center;
+    will-change: transform, opacity;
+  }
+
   .wheel-nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 0 24px 0 16px;
+    height: 100%;
     cursor: pointer;
     text-decoration: none;
     color: var(--color-yorha);
     white-space: nowrap;
-    transform-origin: left center;
-    will-change: transform, opacity;
     user-select: none;
   }
 
@@ -78,7 +82,12 @@
     z-index: 999;
     pointer-events: auto;
     overflow: hidden;
-    touch-action: pan-y;
+    touch-action: none;
+  }
+
+  .mobile-wheel-slot {
+    transform-origin: center center;
+    will-change: transform, opacity;
   }
 
   .mobile-wheel-item {
@@ -87,13 +96,12 @@
     justify-content: center;
     gap: 8px;
     padding: 0 8px;
+    width: 100%;
     height: 48px;
     cursor: pointer;
     text-decoration: none;
     color: var(--color-yorha);
     white-space: nowrap;
-    transform-origin: center center;
-    will-change: transform, opacity;
     user-select: none;
     -webkit-user-select: none;
     flex-shrink: 0;
