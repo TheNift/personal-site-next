@@ -89,7 +89,8 @@ const english = {
 					'Model Kits',
 					'Keyboards',
 					'Tailoring',
-					'Traveling'
+					'Traveling',
+					'Photography'
 				],
 			},
 			proficientIn: {
@@ -313,6 +314,7 @@ const vietnamese = {
 					'Bàn phím cơ',
 					'May mặc',
 					'Du lịch',
+					'Nhiếp ảnh',
 					'Anime và Manga',
 				],
 			},
