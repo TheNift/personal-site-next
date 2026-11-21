@@ -103,14 +103,14 @@ const english = {
 					'C++',
 					'Python',
 					'PHP',
+					'PostgreSQL',
 				],
 			},
 			currentlyLearning: {
 				title: 'Currently Learning',
 				content: [
-					'PostgreSQL',
-					'Cloudflare Edge Workers',
-					'Java',
+					'Godot Engine',
+					'Rust',
 				],
 			},
 			designPhilosophy: {
@@ -331,14 +331,14 @@ const vietnamese = {
 					'C++',
 					'Python',
 					'PHP',
+					'PostgreSQL',
 				],
 			},
 			currentlyLearning: {
 				title: 'Đang học',
 				content: [
-					'PostgreSQL',
-					'Cloudflare Edge Workers',
-					'Java',
+					'Godot Engine',
+					'Rust',
 				],
 			},
 			designPhilosophy: {
